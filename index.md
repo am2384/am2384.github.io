@@ -1,6 +1,6 @@
 # ECE 3400, Fall 2017
 ## Team Alpha
-### Team members: Claire Chen(clc288), Christopher Fedors (cjf83), Ryan O'Hern (rmo26), and Kirstin Petersen (khp37)
+### Team members: Adeel Mahmood
 
 This website contains useful links, our (simple) solutions to the labs, and a very brief description of our final robot. We hope you will find it useful and create much better websites yourselves!
 
