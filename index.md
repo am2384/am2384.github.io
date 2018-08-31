@@ -1,6 +1,6 @@
 # ECE 3400, Fall 2017
 ## Team Alpha
-### Team members: Adeel Mahmood
+### Team members: Adeel Mahmood(am2384), Sheila Balu(sb2276), Yixiao Zhang(yz624), Alexander Field Li(afl59)
 
 This website contains useful links, our (simple) solutions to the labs, and a very brief description of our final robot. We hope you will find it useful and create much better websites yourselves!
 
