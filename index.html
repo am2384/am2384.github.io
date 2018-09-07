@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
 
@@ -599,21 +599,48 @@
           <div class="container">
             <div class="row">
               <div class="col-lg-8 mx-auto">
-                <div class="modal-body">
-                  <!-- Project Details Go Here -->
-                  <h2 class="text-uppercase">Project Name</h2>
-                  <p class="item-intro text-muted">Lorem ipsum dolor sit amet consectetur.</p>
-                  <img class="img-fluid d-block mx-auto" src="img/portfolio/02-full.jpg" alt="">
-                  <p>Use this area to describe your project. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Est blanditiis dolorem culpa incidunt minus dignissimos deserunt repellat aperiam quasi sunt officia expedita beatae cupiditate, maiores repudiandae, nostrum, reiciendis facere nemo!</p>
-                  <ul class="list-inline">
-                    <li>Date: January 2017</li>
-                    <li>Client: Explore</li>
-                    <li>Category: Graphic Design</li>
-                  </ul>
-                  <button class="btn btn-primary" data-dismiss="modal" type="button">
-                    <i class="fa fa-times"></i>
-                    Close Project</button>
-                </div>
+                  <div class="modal-body">
+                      <!-- Project Details Go Here -->
+                      <h2 class="text-uppercase">Lab 1: Microcontrollers</h2>
+                      <h3>Introduction </h3>
+                      <p class="item-intro text-muted">In this lab, we learned the basics of programming Arduino using Arduino IDE, which uses C/C++ programming language. We learned how to use built-in functions to control pin modes and input and output both digital and analog data to various external components, including servo motors, LED and voltage divider circuits. </p>
+                      <h3>Part 1 Blinking an LED: </h3>
+                      <p> In the first part of the lab we used the example sketch supplied by Arduino to blink the built-in LED on the Arduino Uno. The built-in LED is attached to attached to pin D13 on the Arduino Uno. When D13 is set high the LED turns on. When D13 is set low, the LED turns off. This is done in an internal loop where a software delay sets how long the LED should be on and how long it should be off. To modify this to run an external LED, we attached a wire to pin D12 on the Arduino Uno and connected it to part of the breadboard. From here it is connected through a 1kOhm resistor into the anode of the LED (the longer leg).  The other leg of the LED is connected to a GND pin on the Arduino (as can be seen in the video below). The blinking script needs to be modified to trigger the pin connected to the LED. To do this we replaced every instance of LEDPIN with 12 (the pin number of D12).  </p>
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture1.jpg" alt="">
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/LED.GIF" alt="">
+                      <h3>  Part 2 Reading from a potentiometer and displaying on a serial console:</h3>
+                      <p>Arduino’s examples include a script for reading input from an analog pin (A0 in this case) and displaying it to a serial console. We modified part of this so that the value “A0” is written to a variable named “pot”. Then during the analog reads we use the variable “pot” to select which analog pin to read from. An explanation of the original code is as follows: The command `Serial.begin(9600)` configures the serial pins on the device. It also tells the hardware running the serial port to transmit and read data at a baud rate of 9600 bits per second. Then in the loop function the code uses the `analogRead(pot)` command to read from the analog pin `pot` which is an alias for `A0`. It stores this value in `sensorValue`. The next command `Serial.println(sensorValue)` converts the value of `sensorValue` and converts it into a string. It then writes the string to the serial port followed by an end of line character. Finally the code pauses execution for 10 milliseconds.</p>
+                      <p>Printing input from potentiometer  </p>
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture2.jpg" alt="">
+                      <h3> Part 3 - Potentiometer to control LED brightness </h3>
+                      <p> For part 3 of the lab, we slightly modified the lab from part 2 where we read an analog input. First, we normalize the input read from the potentiometer to the range 0 to 255. We then use an the analogWrite function to write this value to the LED. We use analogWrite from a digital pin, which is possible because we use PWM to simulate an analog signal from a digital output. As seen in the illustration, as we turn the potentiometer, the brightness of the LED changes. </p>
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/pot_led.GIF" alt="">
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture3.jpg" alt="">
+                      <p>Controlling a servo with potentiometer  </p>
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture4.jpg" alt="">
+                      <h3>Part 4: Potentiometer to control servo speed  </h3>
+                      <p>The next step was to combine Arduino’s example code used to turn a servo and the example code used to read a potentiometer. First, we create a servo object, and declare an analog pin used to connect the potentiometer. We also declare a variable val used to read the value from the analog pin. We attach the servo pin (3) to the object. Next, in our loop, we read the value of the potentiometer using an analog pin. We then scale the value from a value between 0 and 1023 to a value between 0 and 180. We write this value to the servo, and finally call the delay for 15 ms.</p>
+                      <p> Code for moving in a straight line </p>
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture5.jpg" alt="">
+                      <h3>Part 5: Making the Robot turn left and right   </h3>
+                      <p> After making the robot going straight, we programmed the robot to turn left and right. We adjusted the speed to be slightly below maximum so that the output voltage becomes less dependent on the state of the battery. We refactored the code and wrote three helper functions turnRight(), turnLeft() and goStraight(int delayTime). We run the left wheel forward and right wheel backward to turn right. We adjusted the turning time (how long the two wheels go in opposite directions) until it hits approximately 90 degrees. We tested by seeing the robot going straight and turning left/right alternatively so that it goes in a squire. Then we did the same thing with turning left with left wheel backward and right wheel forward. </p>
+                      <p>Code for Going Straight </p>
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture6.jpg" alt="">
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture7.jpg" alt="">
+                      <p>Code for Going in a Sqaure </p>
+            
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Square2.GIF" alt="">
+                      <p>Use this area to describe your project. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Est blanditiis dolorem culpa incidunt minus dignissimos deserunt repellat aperiam quasi sunt officia expedita beatae cupiditate, maiores repudiandae, nostrum, reiciendis facere nemo!</p>
+                      <ul class="list-inline">
+                          <li>Date: January 2017</li>
+                          <li>Client: Explore</li>
+                          <li>Category: Graphic Design</li>
+                      </ul>
+                      <button class="btn btn-primary" data-dismiss="modal" type="button">
+                          <i class="fa fa-times"></i>
+                          Close Project
+                      </button>
+                  </div>
               </div>
             </div>
           </div>
