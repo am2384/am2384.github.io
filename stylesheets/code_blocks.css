@@ -1,0 +1,9 @@
+pre code {
+    font-size: inherit;
+    color: inherit;
+    word-break: normal;
+    text-align: left;
+    border: 1px solid #999;
+    display: block;
+    padding: 20px;
+}

@@ -21,6 +21,7 @@
 
     <!-- Custom styles for this template -->
     <link href="css/agency.min.css" rel="stylesheet">
+    <link href="stylesheets/code_blocks.css" rel="stylesheet">
 
   </head>
 
@@ -606,28 +607,151 @@
                       <p class="item-intro text-muted">In this lab, we learned the basics of programming Arduino using Arduino IDE, which uses C/C++ programming language. We learned how to use built-in functions to control pin modes and input and output both digital and analog data to various external components, including servo motors, LED and voltage divider circuits. </p>
                       <h3>Part 1 Blinking an LED: </h3>
                       <p> In the first part of the lab we used the example sketch supplied by Arduino to blink the built-in LED on the Arduino Uno. The built-in LED is attached to attached to pin D13 on the Arduino Uno. When D13 is set high the LED turns on. When D13 is set low, the LED turns off. This is done in an internal loop where a software delay sets how long the LED should be on and how long it should be off. To modify this to run an external LED, we attached a wire to pin D12 on the Arduino Uno and connected it to part of the breadboard. From here it is connected through a 1kOhm resistor into the anode of the LED (the longer leg).  The other leg of the LED is connected to a GND pin on the Arduino (as can be seen in the video below). The blinking script needs to be modified to trigger the pin connected to the LED. To do this we replaced every instance of LEDPIN with 12 (the pin number of D12).  </p>
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture1.JPG" alt="">
+                      <pre><code>// the setup routine runs once when you press reset:
+void setup() {
+  // initialize serial communication at 9600 bits per second:
+  pinMode(13, OUTPUT);
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+  digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
+  delay(1000);              // wait for a second
+  digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW 
+  delay(1000);              // wait for a second
+}</code></pre>
                       <img class="img-fluid d-block mx-auto" src="img/labs/lab1/LED.GIF" alt="">
                       <h3>  Part 2 Reading from a potentiometer and displaying on a serial console:</h3>
                       <p>Arduino’s examples include a script for reading input from an analog pin (A0 in this case) and displaying it to a serial console. We modified part of this so that the value “A0” is written to a variable named “pot”. Then during the analog reads we use the variable “pot” to select which analog pin to read from. An explanation of the original code is as follows: The command `Serial.begin(9600)` configures the serial pins on the device. It also tells the hardware running the serial port to transmit and read data at a baud rate of 9600 bits per second. Then in the loop function the code uses the `analogRead(pot)` command to read from the analog pin `pot` which is an alias for `A0`. It stores this value in `sensorValue`. The next command `Serial.println(sensorValue)` converts the value of `sensorValue` and converts it into a string. It then writes the string to the serial port followed by an end of line character. Finally the code pauses execution for 10 milliseconds.</p>
                       <p>Printing input from potentiometer  </p>
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture2.JPG" alt="">
+                      <pre><code>int pot = A0;
+
+// the setup routine runs once when you press reset:
+void setup() {
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+  // read the input on analog pin 0:
+  int sensorValue = analogRead(pot);
+  // print out the value you read:
+  Serial.println(sensorValue);
+  delay(10);        // delay in between reads for stability
+}</code></pre>
                       <h3> Part 3 - Potentiometer to control LED brightness </h3>
                       <p> For part 3 of the lab, we slightly modified the lab from part 2 where we read an analog input. First, we normalize the input read from the potentiometer to the range 0 to 255. We then use an the analogWrite function to write this value to the LED. We use analogWrite from a digital pin, which is possible because we use PWM to simulate an analog signal from a digital output. As seen in the illustration, as we turn the potentiometer, the brightness of the LED changes. </p>
                       <img class="img-fluid d-block mx-auto" src="img/labs/lab1/pot_led.GIF" alt="">
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture3.JPG" alt="">
+                      <pre><code>int pot = A0;
+int ledpin = 3;
+// the setup routine runs once when you press reset:
+void setup() {
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+  pinMode(ledpin, OUTPUT);
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+  // read the input on analog pin 0:
+  int sensorValue = analogRead(pot);
+  // print out the value you read:
+  Serial.println(sensorValue);
+  float volts = sensorValue/1023.0 * 255;
+  analogWrite(ledpin, volts);
+  delay(10);        // delay in between reads for stability
+}</code></pre>
                       <p>Controlling a servo with potentiometer  </p>
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture4.JPG" alt="">
+                      <pre><code>#include &lt;Servo.h&gt;
+
+Servo myservo;  // create servo object to control a servo
+
+int potpin = 0;  // analog pin used to connect the potentiometer
+int val;    // variable to read the value from the analog pin
+
+void setup() {
+  myservo.attach(3);  // attaches the servo on pin 3 to the servo object
+}
+
+void loop() {
+  val = analogRead(potpin);            
+      // reads the value of the potentiometer (value between 0 and 1023)
+  //val = map(val, 0, 1023, 0, 180);     
+      // scale it to use it with the servo (value between 0 and 180)
+  myservo.write(val);                  
+      // sets the servo position according to the scaled value
+  delay(15);                           
+      // waits for the servo to get there
+}</code></pre>
                       <h3>Part 4: Potentiometer to control servo speed  </h3>
                       <p>The next step was to combine Arduino’s example code used to turn a servo and the example code used to read a potentiometer. First, we create a servo object, and declare an analog pin used to connect the potentiometer. We also declare a variable val used to read the value from the analog pin. We attach the servo pin (3) to the object. Next, in our loop, we read the value of the potentiometer using an analog pin. We then scale the value from a value between 0 and 1023 to a value between 0 and 180. We write this value to the servo, and finally call the delay for 15 ms.</p>
                       <p> Code for moving in a straight line </p>
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture5.JPG" alt="">
+                      <pre><code>#include &lt;Servo.h&gt;
+
+Servo servo0;  // create servo object to control a servo
+Servo servo1;  // create servo object to control a servo
+
+// twelve servo objects can be created on most boards
+
+//int pos = 90;    // variable to store the servo position
+
+void setup() {
+  servo0.attach(5);  // attaches the servo on pin 9 to the servo object
+  servo1.attach(6);  // attaches the servo on pin 9 to the servo object
+}
+
+void loop() {
+    servo0.write(180);       // tell servo to go to position in variable 'pos'
+    servo1.write(0);         // waits 15ms for the servo to reach the position
+    delay(500);
+    //servo0.write(180);     // tell servo to go to position in variable 'pos'
+    //servo1.write(0);       // waits 15ms for the servo to reach the position
+    //delay(1500);
+}</code></pre>
                       <h3>Part 5: Making the Robot turn left and right   </h3>
                       <p> After making the robot going straight, we programmed the robot to turn left and right. We adjusted the speed to be slightly below maximum so that the output voltage becomes less dependent on the state of the battery. We refactored the code and wrote three helper functions turnRight(), turnLeft() and goStraight(int delayTime). We run the left wheel forward and right wheel backward to turn right. We adjusted the turning time (how long the two wheels go in opposite directions) until it hits approximately 90 degrees. We tested by seeing the robot going straight and turning left/right alternatively so that it goes in a squire. Then we did the same thing with turning left with left wheel backward and right wheel forward. </p>
                       <p>Code for Going in a Square </p>
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture6.JPG" alt="">
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture7.JPG" alt="">
-            
+                      <pre><code>#include &lt;Servo.h&gt;
+
+Servo servo0;  // create servo object for the left servo
+Servo servo1;  // create servo object for the right servo
+
+// Helper function that runs servos 
+//   with leftSpeed, rightSpeed for delayTime msecs
+void runServo(int leftSpeed, int rightSpeed, int delayTime)
+{
+  servo0.write(leftSpeed); 
+  servo1.write(rightSpeed);
+  delay(delayTime);
+}
+
+// Turn 90 degrees to the right
+void turnRight()
+{
+  runServo(160, 160, 556);
+}
+// Turn 90 degrees to the left
+void turnLeft()
+{
+  runServo(20, 20, 556);
+}
+
+// Go straight for runTime msecs
+void goStraight(int runTime)
+{
+    runServo(160, 20, runTime);
+}
+
+void setup() {
+  servo0.attach(5);  // attaches the servo on pin 5 to the servo object
+  servo1.attach(6);  // attaches the servo on pin 6 to the servo object
+}
+
+void loop() {
+    goStraight(1000);
+    turnRight();
+}</code></pre>
                       <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Square2.GIF" alt="">
                       <ul class="list-inline">
                           <li>Date: January 2017</li>
