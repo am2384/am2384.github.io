@@ -531,7 +531,7 @@
                       <h3>Part 1 Blinking an LED: </h3>
                       <p> In the first part of the lab we used the example sketch supplied by Arduino to blink the built-in LED on the Arduino Uno. The built-in LED is attached to attached to pin D13 on the Arduino Uno. When D13 is set high the LED turns on. When D13 is set low, the LED turns off. This is done in an internal loop where a software delay sets how long the LED should be on and how long it should be off. To modify this to run an external LED, we attached a wire to pin D12 on the Arduino Uno and connected it to part of the breadboard. From here it is connected through a 1kOhm resistor into the anode of the LED (the longer leg).  The other leg of the LED is connected to a GND pin on the Arduino (as can be seen in the video below). The blinking script needs to be modified to trigger the pin connected to the LED. To do this we replaced every instance of LEDPIN with 12 (the pin number of D12).  </p>
                       <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture1.JPG" alt="">
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/LED.GIF" alt="">
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/LED.GIF" alt="" style="width:20vw;">
                       <h3>  Part 2 Reading from a potentiometer and displaying on a serial console:</h3>
                       <p>Arduino’s examples include a script for reading input from an analog pin (A0 in this case) and displaying it to a serial console. We modified part of this so that the value “A0” is written to a variable named “pot”. Then during the analog reads we use the variable “pot” to select which analog pin to read from. An explanation of the original code is as follows: The command `Serial.begin(9600)` configures the serial pins on the device. It also tells the hardware running the serial port to transmit and read data at a baud rate of 9600 bits per second. Then in the loop function the code uses the `analogRead(pot)` command to read from the analog pin `pot` which is an alias for `A0`. It stores this value in `sensorValue`. The next command `Serial.println(sensorValue)` converts the value of `sensorValue` and converts it into a string. It then writes the string to the serial port followed by an end of line character. Finally the code pauses execution for 10 milliseconds.</p>
                       <p>Printing input from potentiometer  </p>
@@ -552,8 +552,8 @@
                       <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture6.JPG" alt="">
                       <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Capture7.JPG" alt="">
             
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Square1.GIF" alt="">
-                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Square2.GIF" alt="">
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Square1.GIF" alt="" style="width:40vw;">
+                      <img class="img-fluid d-block mx-auto" src="img/labs/lab1/Square2.GIF" alt="" style="width:40vw;">
                       <ul class="list-inline">
                           <li>Date: January 2017</li>
                           <li>Client: Explore</li>
