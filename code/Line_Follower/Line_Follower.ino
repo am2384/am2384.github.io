@@ -8,10 +8,10 @@ int frontRight = A0; // front right  1
 int frontLeft = A1; // front left  2
 int backRight = A3; // back right  3
 
-  int backLeftInput = 0;
-  int frontRightInput = 0;
-  int frontLeftInput = 0;
-  int backRightInput = 0;
+int backLeftInput = 0;
+int frontRightInput = 0;
+int frontLeftInput = 0;
+int backRightInput = 0;
 
 int thresh  = 700;
 // Helper function that runs servos with leftSpeed, rightSpeed for delayTime msecs
@@ -55,7 +55,6 @@ void setup() {
   
 }
 
-// Desktop Folder 
 void loop() {
   backLeftInput = analogRead(backLeft);
   frontRightInput = analogRead(frontRight);
