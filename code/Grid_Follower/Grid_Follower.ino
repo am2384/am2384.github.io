@@ -15,8 +15,8 @@ int backRightInput = 0;
 
 int thresh  = 700;
 
-char* directions = {'l', 'r', 'r', 'r', 'r', 'l', 'l', 'l'};
-count = 0;
+char* directions = "lrrrrlll";
+int count = 0;
 // Helper function that runs servos with leftSpeed, rightSpeed for delayTime msecs
 void runServo(int leftSpeed, int rightSpeed)
 {
