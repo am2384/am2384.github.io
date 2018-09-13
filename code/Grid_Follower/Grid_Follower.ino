@@ -15,6 +15,8 @@ int backRightInput = 0;
 
 int thresh  = 700;
 
+char* directions = {'l', 'r', 'r', 'r', 'r', 'l', 'l', 'l'};
+count = 0;
 // Helper function that runs servos with leftSpeed, rightSpeed for delayTime msecs
 void runServo(int leftSpeed, int rightSpeed)
 {
@@ -26,6 +28,12 @@ void runServo(int leftSpeed, int rightSpeed)
 void turnRight()
 {
   runServo(160, 160);
+}
+
+void stop()
+{
+  servo0.detach();
+  servo1.detach();
 }
 
 void adjustRight()
@@ -70,5 +78,30 @@ void loop() {
   {
     adjustLeft();
   }
-  delay(5);
+  delay(2);
+
+  if(backRightInput < thresh || backLeftInput < thresh)
+  {
+    if(directions[count] == 'l')
+    {
+      adjustLeft();
+      delay(100);
+      while(!(frontRightInput < thresh && frontLeftInput < thresh))
+      {
+      adjustLeft();
+      }
+    } else 
+    {
+      adjustRight();
+      delay(100);
+      while(!(frontRightInput < thresh && frontLeftInput < thresh))
+      {
+      adjustRight();
+      } 
+    }
+  }
+  count+=1;
+  if(count == 8) count = 0;
+
+  
 }
