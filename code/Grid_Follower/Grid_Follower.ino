@@ -13,7 +13,7 @@ int frontRightInput = 0;
 int frontLeftInput = 0;
 int backRightInput = 0;
 
-int thresh  = 700;
+int thresh  = 300;
 
 char* directions = "lrrrrlll";
 int count = 0;
@@ -62,7 +62,7 @@ void turnLeft()
 // Go straight for runTime msecs
 void goStraight()
 {
-   runServo(95, 85);
+   runServo(92, 88);
 }
 
 void setup() 
@@ -94,12 +94,12 @@ void loop() {
   }
   delay(1);
 
-
+/*
 if(backRightInput < thresh && backLeftInput < thresh)
   {
        
       turnLeft();
-      delay(400);
+      delay(800);
       digitalWrite(LED_BUILTIN, HIGH);
       while(!(frontRightInput < thresh && frontLeftInput < thresh))
       {
@@ -108,43 +108,48 @@ if(backRightInput < thresh && backLeftInput < thresh)
          frontLeftInput = analogRead(frontLeft);
          backRightInput = analogRead(backRight);
       }
+      digitalWrite(LED_BUILTIN, LOW); 
       goStraight();
-      delay(100);
+      delay(300);
   }
-  digitalWrite(LED_BUILTIN, LOW); 
+  
+*/
 
 
 
-/*
 
   if(backRightInput < thresh && backLeftInput < thresh)
   {
     if(directions[count] == 'l')
     {
       turnLeft();
-      delay(100);
+      delay(800);
       while(!(frontRightInput < thresh && frontLeftInput < thresh))
       {
         backLeftInput = analogRead(backLeft);
-         frontRightInput = analogRead(frontRight);
-         frontLeftInput = analogRead(frontLeft);
-         backRightInput = analogRead(backRight);
+        frontRightInput = analogRead(frontRight);
+        frontLeftInput = analogRead(frontLeft);
+        backRightInput = analogRead(backRight);
       }
+      goStraight();
+      delay(300);
     } else 
     {
       turnRight();
-      delay(100);
+      delay(800);
       while(!(frontRightInput < thresh && frontLeftInput < thresh))
       {
-      backLeftInput = analogRead(backLeft);
-         frontRightInput = analogRead(frontRight);
-         frontLeftInput = analogRead(frontLeft);
-         backRightInput = analogRead(backRight);
-      } 
+        backLeftInput = analogRead(backLeft);
+        frontRightInput = analogRead(frontRight);
+        frontLeftInput = analogRead(frontLeft);
+        backRightInput = analogRead(backRight);
+      }
+       goStraight();
+       delay(300); 
     }
   }
   count+=1;
   if(count == 8) count = 0;
-*/
+
   
 }
