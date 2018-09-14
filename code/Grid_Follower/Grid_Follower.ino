@@ -13,6 +13,11 @@ int frontRightInput = 0;
 int frontLeftInput = 0;
 int backRightInput = 0;
 
+bool backLeftW = true;
+bool backRightW = true;
+bool frontLeftW = true;
+bool frontRightW = true;
+
 int thresh  = 300;
 
 char* directions = "lrrrrlll";
@@ -25,12 +30,17 @@ void runServo(int leftSpeed, int rightSpeed)
 }
 
 // Turn 90 degrees to the right
-
+void readStatus()
+{
+  backLeftW = analogRead(backLeft) < thresh;
+  backRightW = analogRead(backRight) < thresh;
+  frontLeftW = analogRead(frontLeft) < thresh;
+  frontRightW = analogRead(frontRight) < thresh;
+}
 
 void stop()
 {
-  servo0.detach();
-  servo1.detach();
+  runServo(90,90);
 }
 
 
@@ -74,62 +84,35 @@ void setup()
   servo1.attach(6,1300,1700);  // attaches the servo on pin 6 to the servo object
 }
 
-void loop() {
-  backLeftInput = (analogRead(backLeft));
-  frontRightInput = (analogRead(frontRight));
-  frontLeftInput = (analogRead(frontLeft));
-  backRightInput = (analogRead(backRight));
+void goStraightOneBlock()
+{
+   readStatus();
   
-  if(frontRightInput < thresh && frontLeftInput < thresh)
+  if(frontRightW && frontLeftW)
   {
     goStraight();
     
-  } else if(frontLeftInput > thresh && frontRightInput < thresh)
+  } else if(!frontLeftW && frontRightW)
   {
     adjustRight();
     
-  } else if(frontLeftInput < thresh && frontRightInput > thresh)
+  } else if(frontLeftW && !frontRightW)
   {
     adjustLeft();
   }
-  delay(1);
+}
 
-/*
-if(backRightInput < thresh && backLeftInput < thresh)
+void turnIntersection(char direction)
+{
+   if(backRightW && backLeftW)
   {
-       
-      turnLeft();
-      delay(800);
-      digitalWrite(LED_BUILTIN, HIGH);
-      while(!(frontRightInput < thresh && frontLeftInput < thresh))
-      {
-         backLeftInput = (analogRead(backLeft)*10 + backLeftInput*22)>>5;
-        frontRightInput = (analogRead(frontRight)*10 + frontRightInput*22)>>5;
-        frontLeftInput = (analogRead(frontLeft)*10 + frontLeftInput*22)>>5;
-        backRightInput = (analogRead(backRight)*10 + backRightInput*22)>>5;
-      }
-      digitalWrite(LED_BUILTIN, LOW); 
-      goStraight();
-      delay(300);
-  }
-  
-*/
-
-
-
-
-  if(backRightInput < thresh && backLeftInput < thresh)
-  {
-    if(directions[count] == 'l')
+    if(direction == 'l')
     {
       turnLeft();
       delay(1100);
-      while(!(frontRightInput < thresh && frontLeftInput < thresh))
+      while(!(frontRightW && frontLeftW))
       {
-        backLeftInput = (analogRead(backLeft));
-        frontRightInput = (analogRead(frontRight));
-        frontLeftInput = (analogRead(frontLeft));
-        backRightInput = (analogRead(backRight));
+        readStatus();
       }
       goStraight();
       delay(300);
@@ -137,12 +120,9 @@ if(backRightInput < thresh && backLeftInput < thresh)
     {
       turnRight();
       delay(1100);
-      while(!(frontRightInput < thresh && frontLeftInput < thresh))
+      while(!(frontRightW && frontLeftW))
       {
-        backLeftInput = (analogRead(backLeft));
-        frontRightInput = (analogRead(frontRight));
-        frontLeftInput = (analogRead(frontLeft));
-        backRightInput = (analogRead(backRight));
+        readStatus();
       }
        goStraight();
        delay(300); 
@@ -150,6 +130,28 @@ if(backRightInput < thresh && backLeftInput < thresh)
     count+=1;
     if(count == 8) count = 0;
   }
+  
+}
+
+void loop() {
+ 
+  goStraightOneBlock();
+  
+  delay(1);
+
+
+
+
+  turnIntersection(directions[count]);
+
+ 
 
   
 }
+
+
+
+
+
+
+
