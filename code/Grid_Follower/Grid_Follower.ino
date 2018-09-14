@@ -13,11 +13,10 @@ bool backRightW = true;
 bool frontLeftW = true;
 bool frontRightW = true;
 
-int thresh  = 300; // threshold value for analog line follower input to read true
+int thresh  = 300;
 
-char* directions = "lrrrrlll"; // command vector
+char* directions = "lrrrrlll";
 int count = 0;
-
 // Helper function that runs servos with leftSpeed, rightSpeed for delayTime msecs
 void runServo(int leftSpeed, int rightSpeed)
 {
@@ -34,38 +33,35 @@ void readStatus()
   frontRightW = analogRead(frontRight) < thresh;
 }
 
-// stop the servo
-void stopServo()
+void stop()
 {
   runServo(90,90);
 }
 
-// adjust the robot to veer right
 void adjustRight()
 {
   runServo(95, 90); // left , right 
 }
 
-// adjust the robot to veer left
 void adjustLeft()
 {
   runServo(90, 85); // left, right 
 }
 
-//  turn towards the right
 void turnRight()
 {
   runServo(92, 92); // left , right 
 }
 
-// turn towards the left
+
 void turnLeft()
 {
   runServo(88, 88); // left, right 
 }
 
 
-// Go straight
+
+// Go straight for runTime msecs
 void goStraight()
 {
    runServo(92, 88);
@@ -73,15 +69,14 @@ void goStraight()
 
 void setup() 
 {
+
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN,LOW);
   servo0.attach(5,1300,1700);  // attaches the servo on pin 5 to the servo object
   servo1.attach(6,1300,1700);  // attaches the servo on pin 6 to the servo object
-  Serial.begin(9600);
 }
 
-// follows line, adjusts autonomously
-void lineFollower()
+void goStraightOneBlock()
 {
    readStatus();
   
@@ -99,43 +94,56 @@ void lineFollower()
   }
 }
 
-// turn when it encounters an intersection
 void turnIntersection(char direction)
 {
-   if(backRightW && backLeftW) // intersection
+   if(backRightW && backLeftW)
   {
-    if(direction == 'l') // command array tells it to turn left
+    if(direction == 'l')
     {
-      turnLeft(); // set motors to turn left
+      turnLeft();
       delay(1100);
-      while(!(frontRightW && frontLeftW)) // keep turning left until both front sensors read white
+      while(!(frontRightW && frontLeftW))
       {
         readStatus();
       }
-      goStraight(); // move forward
+      goStraight();
       delay(300);
-    } 
-    else // command array tells it to turn right
+    } else 
     {
-      turnRight(); // set motors to turn right
+      turnRight();
       delay(1100);
-      while(!(frontRightW && frontLeftW)) // keep turning left until both front sensors read white
+      while(!(frontRightW && frontLeftW))
       {
         readStatus();
       }
-       goStraight(); // move forward
+       goStraight();
        delay(300); 
     }
-    count+=1; // increment through character array
-    if(count == 8) count = 0; // reset figure 8 loop
+    count+=1;
+    if(count == 8) count = 0;
   }
+  
 }
 
 void loop() {
  
-  followLine();
+  goStraightOneBlock();
+  
   delay(1);
 
+
+
+
   turnIntersection(directions[count]);
+
+ 
+
   
 }
+
+
+
+
+
+
+
