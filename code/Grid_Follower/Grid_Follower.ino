@@ -25,16 +25,16 @@ void runServo(int leftSpeed, int rightSpeed)
 }
 
 // Turn 90 degrees to the right
-void turnRight()
-{
-  runServo(160, 160);
-}
+
 
 void stop()
 {
   servo0.detach();
   servo1.detach();
 }
+
+
+
 
 void adjustRight()
 {
@@ -44,6 +44,17 @@ void adjustRight()
 void adjustLeft()
 {
   runServo(90, 85); // left, right 
+}
+
+void turnRight()
+{
+  runServo(92, 92); // left , right 
+}
+
+
+void turnLeft()
+{
+  runServo(88, 88); // left, right 
 }
 
 
@@ -56,6 +67,9 @@ void goStraight()
 
 void setup() 
 {
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN,LOW);
   servo0.attach(5,1300,1700);  // attaches the servo on pin 5 to the servo object
   servo1.attach(6,1300,1700);  // attaches the servo on pin 6 to the servo object
 }
@@ -78,30 +92,59 @@ void loop() {
   {
     adjustLeft();
   }
-  delay(2);
+  delay(1);
 
-  if(backRightInput < thresh || backLeftInput < thresh)
+
+if(backRightInput < thresh && backLeftInput < thresh)
+  {
+       
+      turnLeft();
+      delay(400);
+      digitalWrite(LED_BUILTIN, HIGH);
+      while(!(frontRightInput < thresh && frontLeftInput < thresh))
+      {
+         backLeftInput = analogRead(backLeft);
+         frontRightInput = analogRead(frontRight);
+         frontLeftInput = analogRead(frontLeft);
+         backRightInput = analogRead(backRight);
+      }
+      goStraight();
+      delay(100);
+  }
+  digitalWrite(LED_BUILTIN, LOW); 
+
+
+
+/*
+
+  if(backRightInput < thresh && backLeftInput < thresh)
   {
     if(directions[count] == 'l')
     {
-      adjustLeft();
+      turnLeft();
       delay(100);
       while(!(frontRightInput < thresh && frontLeftInput < thresh))
       {
-      adjustLeft();
+        backLeftInput = analogRead(backLeft);
+         frontRightInput = analogRead(frontRight);
+         frontLeftInput = analogRead(frontLeft);
+         backRightInput = analogRead(backRight);
       }
     } else 
     {
-      adjustRight();
+      turnRight();
       delay(100);
       while(!(frontRightInput < thresh && frontLeftInput < thresh))
       {
-      adjustRight();
+      backLeftInput = analogRead(backLeft);
+         frontRightInput = analogRead(frontRight);
+         frontLeftInput = analogRead(frontLeft);
+         backRightInput = analogRead(backRight);
       } 
     }
   }
   count+=1;
   if(count == 8) count = 0;
-
+*/
   
 }
