@@ -75,10 +75,10 @@ void setup()
 }
 
 void loop() {
-  backLeftInput = analogRead(backLeft);
-  frontRightInput = analogRead(frontRight);
-  frontLeftInput = analogRead(frontLeft);
-  backRightInput = analogRead(backRight);
+  backLeftInput = (analogRead(backLeft)*10 + backLeftInput*22)>>5;
+  frontRightInput = (analogRead(frontRight)*10 + frontRightInput*22)>>5;
+  frontLeftInput = (analogRead(frontLeft)*10 + frontLeftInput*22)>>5 ;
+  backRightInput = (analogRead(backRight)*10 + backRightInput*22)>>5;
   
   if(frontRightInput < thresh && frontLeftInput < thresh)
   {
@@ -103,10 +103,10 @@ if(backRightInput < thresh && backLeftInput < thresh)
       digitalWrite(LED_BUILTIN, HIGH);
       while(!(frontRightInput < thresh && frontLeftInput < thresh))
       {
-         backLeftInput = analogRead(backLeft);
-         frontRightInput = analogRead(frontRight);
-         frontLeftInput = analogRead(frontLeft);
-         backRightInput = analogRead(backRight);
+         backLeftInput = (analogRead(backLeft)*10 + backLeftInput*22)>>5;
+         frontRightInput = (analogRead(frontRight)*10 + frontRightInput*22)>>5;
+         frontLeftInput = (analogRead(frontLeft)*10 + frontLeftInput*22)>>5 ;
+         backRightInput = (analogRead(backRight)*10 + backRightInput*22)>>5;
       }
       goStraight();
       delay(100);
