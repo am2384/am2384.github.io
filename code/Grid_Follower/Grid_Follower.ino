@@ -8,15 +8,16 @@ int frontRight = A0; // pin for front right sensor
 int frontLeft = A1; // pin for front left sensor
 int backRight = A3; // pin for back right sensor
 
-int backLeftInput = 0;
-int frontRightInput = 0;
-int frontLeftInput = 0;
-int backRightInput = 0;
+bool backLeftW = true;
+bool backRightW = true;
+bool frontLeftW = true;
+bool frontRightW = true;
 
-int thresh  = 700;
+int thresh  = 300; // threshold value for analog line follower input to read true
 
-char* directions = "lrrrrlll";
+char* directions = "lrrrrlll"; // command vector
 int count = 0;
+
 // Helper function that runs servos with leftSpeed, rightSpeed for delayTime msecs
 void runServo(int leftSpeed, int rightSpeed)
 {
@@ -25,126 +26,116 @@ void runServo(int leftSpeed, int rightSpeed)
 }
 
 // Turn 90 degrees to the right
-
-
-void stop()
+void readStatus()
 {
-  servo0.detach();
-  servo1.detach();
+  backLeftW = analogRead(backLeft) < thresh;
+  backRightW = analogRead(backRight) < thresh;
+  frontLeftW = analogRead(frontLeft) < thresh;
+  frontRightW = analogRead(frontRight) < thresh;
 }
 
+// stop the servo
+void stopServo()
+{
+  runServo(90,90);
+}
 
-
-
+// adjust the robot to veer right
 void adjustRight()
 {
   runServo(95, 90); // left , right 
 }
 
+// adjust the robot to veer left
 void adjustLeft()
 {
   runServo(90, 85); // left, right 
 }
 
+//  turn towards the right
 void turnRight()
 {
   runServo(92, 92); // left , right 
 }
 
-
+// turn towards the left
 void turnLeft()
 {
   runServo(88, 88); // left, right 
 }
 
 
-
-// Go straight for runTime msecs
+// Go straight
 void goStraight()
 {
-   runServo(95, 85);
+   runServo(92, 88);
 }
 
 void setup() 
 {
-
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN,LOW);
   servo0.attach(5,1300,1700);  // attaches the servo on pin 5 to the servo object
   servo1.attach(6,1300,1700);  // attaches the servo on pin 6 to the servo object
+  Serial.begin(9600);
 }
 
-void loop() {
-  backLeftInput = analogRead(backLeft);
-  frontRightInput = analogRead(frontRight);
-  frontLeftInput = analogRead(frontLeft);
-  backRightInput = analogRead(backRight);
+// follows line, adjusts autonomously
+void lineFollower()
+{
+   readStatus();
   
-  if(frontRightInput < thresh && frontLeftInput < thresh)
+  if(frontRightW && frontLeftW)
   {
     goStraight();
     
-  } else if(frontLeftInput > thresh && frontRightInput < thresh)
+  } else if(!frontLeftW && frontRightW)
   {
     adjustRight();
     
-  } else if(frontLeftInput < thresh && frontRightInput > thresh)
+  } else if(frontLeftW && !frontRightW)
   {
     adjustLeft();
   }
+}
+
+// turn when it encounters an intersection
+void turnIntersection(char direction)
+{
+   if(backRightW && backLeftW) // intersection
+  {
+    if(direction == 'l') // command array tells it to turn left
+    {
+      turnLeft(); // set motors to turn left
+      delay(1100);
+      while(!(frontRightW && frontLeftW)) // keep turning left until both front sensors read white
+      {
+        readStatus();
+      }
+      goStraight(); // move forward
+      delay(300);
+    } 
+    else // command array tells it to turn right
+    {
+      turnRight(); // set motors to turn right
+      delay(1100);
+      while(!(frontRightW && frontLeftW)) // keep turning left until both front sensors read white
+      {
+        readStatus();
+      }
+       goStraight(); // move forward
+       delay(300); 
+    }
+    count+=1; // increment through character array
+    if(count == 8) count = 0; // reset figure 8 loop
+  }
+}
+
+void loop() {
+ 
+  followLine();
   delay(1);
 
-
-if(backRightInput < thresh && backLeftInput < thresh)
-  {
-       
-      turnLeft();
-      delay(400);
-      digitalWrite(LED_BUILTIN, HIGH);
-      while(!(frontRightInput < thresh && frontLeftInput < thresh))
-      {
-         backLeftInput = analogRead(backLeft);
-         frontRightInput = analogRead(frontRight);
-         frontLeftInput = analogRead(frontLeft);
-         backRightInput = analogRead(backRight);
-      }
-      goStraight();
-      delay(100);
-  }
-  digitalWrite(LED_BUILTIN, LOW); 
-
-
-
-/*
-
-  if(backRightInput < thresh && backLeftInput < thresh)
-  {
-    if(directions[count] == 'l')
-    {
-      turnLeft();
-      delay(100);
-      while(!(frontRightInput < thresh && frontLeftInput < thresh))
-      {
-        backLeftInput = analogRead(backLeft);
-         frontRightInput = analogRead(frontRight);
-         frontLeftInput = analogRead(frontLeft);
-         backRightInput = analogRead(backRight);
-      }
-    } else 
-    {
-      turnRight();
-      delay(100);
-      while(!(frontRightInput < thresh && frontLeftInput < thresh))
-      {
-      backLeftInput = analogRead(backLeft);
-         frontRightInput = analogRead(frontRight);
-         frontLeftInput = analogRead(frontLeft);
-         backRightInput = analogRead(backRight);
-      } 
-    }
-  }
-  count+=1;
-  if(count == 8) count = 0;
-*/
+  turnIntersection(directions[count]);
   
 }
