@@ -665,19 +665,75 @@ void loop() {
                                   <h3>Goals </h3>
                                   <p align="left">To achieve Milestone 1, our team needed to improve our rover from Lab 1 to be able to follow a line, and to drive in a figure 8 pattern. </p>
                                   <h3>Hardware Changes </h3>
-                                  <p align="left"> In order for the robot to follow lines we needed first to setup to robot to first detect the lines. In order to do so we utilized 4 lines sensors. These are installed on a breakout board by Sparkfun. They can be found <a href = "https://www.sparkfun.com/products/9453">here </a>. The breakout board by Sparkfun is for the QRE1113 sensor. It’s a light emitting diode and a photosensitive transistor packaged into one device. The line sensor works by emitting IR light from the LED and reading the amount of light reflected back into the photosensitive transistor. The more light the photo-transistor receives the current it conducts. Sparkfun supplies the following schematic for their breakout:</p>
+                                  <p align="left"> In order for the robot to follow lines we needed first to setup to robot to first detect the lines. In order to do so we utilized 4 lines sensors. These are installed on a breakout board by Sparkfun. They can be found <a href="https://www.sparkfun.com/products/9453">here </a>. The breakout board by Sparkfun is for the QRE1113 sensor. It’s a light emitting diode and a photosensitive transistor packaged into one device. The line sensor works by emitting IR light from the LED and reading the amount of light reflected back into the photosensitive transistor. The more light the photo-transistor receives the current it conducts. Sparkfun supplies the following schematic for their breakout:</p>
                                   <img class="img-fluid d-block mx-auto" src="img/portfolio/lineFollowerSchematic.png" style="width:200px;" alt="Line Follower Schematic">
                                   <p align="left"> Since the photosensitive transistor is connected to the lower side of the signal port with a pull-up resistor on the top the sensor returns a lower voltage when more light is present (ie. when the light reflects off a lighter colour). We utilized 4 of these sensors by placing two near the front-center spaced slightly less apart than the width of the line. This allows the line sensor to determine whether is needs to turn left of right to center itself on the line. The other two sensors a placed in-line with the wheels. This allows the sensors to read when the turning point of the bot hits and intersection. The sensors are placed much wider apart than the lines so that they don’t see the line that’s currently being followed. Theses sensors have tape wrapped around them to make a curtain of sorts to block ambient light. Because the sensors read the amplitude of incoming light they are sensitive to background light. By wrapping them in curtains we can block the majority of the background light and reduce the amount of noise seen by the sensors. The only other change is a brace across the mounts for the motors. We’ve started to see the robot sag and bend while turning and the reasoning is that bracing the brackets will reduce the sagging and bending. </p>
                                   <img class="img-fluid d-block mx-auto" src="img/portfolio/roverML1.JPG" style="width:30vw;" alt="Line Follower Schematic">
                                   <h3>Software Changes </h3>
                                   <p align="left"> We allocated 4 analog pins for reading data from the sensors and detecting lines on the grid. We tested the sensors and determined that the threshold for black and white is around 300. Inputs below the threshold are considered white, and inputs above the threshold are considered black.</p>
                                   <p align="left"> To make the robot follow a line, we use the front two sensors in the middle to trace a line, and have three functions goStraight(), adjustRight(), adjustLeft() to adjust directions based on sensor inputs. When both sensors read white, the robot goStraight() with two wheels running in the same speed. When left front sensor goes out of the line edge and reads black, adjustRight() is called, which stops the right wheel and only turns the left wheel, so that the robot can adjust towards right. And when the right front sensor reads black, we have adjustLeft() doing the opposite. The functions run in a loop so that the robot can make adjustments periodically. </p>
+                                  <p align="left"> The code for Line Follower, which only utilizes the two front sensors, is written below: </p>
+
+                                  <pre><code>
+    void lineFollower()
+    {
+        readStatus();
+
+        if(frontRightW && frontLeftW)
+        {
+            goStraight();
+
+        } else if(!frontLeftW && frontRightW)
+        {
+            adjustRight();
+
+        }   else if(frontLeftW && !frontRightW)
+        {
+            adjustLeft();
+        }
+    }
+
+</code></pre>
+
                                   <img class="img-fluid d-block mx-auto" src="img/portfolio/lineFollow.gif" alt="Line Follow Gif" style="width:40vw;">
                                   <p align="left"> To make the robot going in a figure 8, we added two turnRight() and turnLeft() functions with one wheel turning forward and one wheel turning back, so the robot can do a sharper turn of 90 degrees.  </p>
-                                  <p align="left"> We refactored the line following code into a goStraightOneBlock() function, and added turnIntersection(char direction) that takes ‘l’ and ‘r’ as inputs and turns the robot accordingly. When the robot is following a line, it is considered to meet an intersection when both back side sensors read white. The robot then continues turning until the front middle sensors detect the crossing line. We add a 1100 msec delay after a turning starts before the front sensors start detecting the other line again, and make the the robot goStraight() for 300 msecs after it stops turning before it starts detecting the other intersection. Because the sensors stays on the line for a non-negligible time when switching modes, this technique is used to prevent the robot from accidently jumping over modes. </p>
+                                  <p align="left"> We refactored the line following code into a lineFollower() function, and added turnIntersection(char direction) that takes ‘l’ and ‘r’ as inputs and turns the robot accordingly. When the robot is following a line, it is considered to meet an intersection when both back side sensors read white. The robot then continues turning until the front middle sensors detect the crossing line. We add a 1100 msec delay after a turning starts before the front sensors start detecting the other line again, and make the the robot goStraight() for 300 msecs after it stops turning before it starts detecting the other intersection. Because the sensors stays on the line for a non-negligible time when switching modes, this technique is used to prevent the robot from accidently jumping over modes. </p>
                                   <p align="left"> We use a string "lrrrrlll" to signify the sequence of turning in figure 8, and use a counter that loops between 0~7 to keep track of the robot’s state of turning. We increment the counter every time turnIntersection(char direction) is called, and use the counter as index in the string to get the corresponding char passed into the function. </p>
-                                  <p align="left"> To make a figure eight, in the main loop() we call goStraight() and turnIntersection(char direction) once each, so the robot goes straight and turns appropriately into a figure 8. </p>
-                                    <img class="img-fluid d-block mx-auto" src="img/portfolio/figure8.gif" alt="Figure 8 Gif" style="width:40vw;">
+                                  <p align="left"> To make a figure eight, in the main loop() we call lineFollower() and turnIntersection(char direction) once each, so the robot goes straight and turns appropriately into a figure 8. </p>
+                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/figure8.gif" alt="Figure 8 Gif" style="width:40vw;">
+                                  <p align="left"> The code for turnIntersection() function is written below: </p>
+                                  <pre><code>
+    void turnIntersection(char direction)
+    {
+        if(backRightW && backLeftW)
+        {
+            if(direction == 'l')
+            {
+                turnLeft();
+                delay(1100);
+                while(!(frontRightW && frontLeftW))
+                {
+                    readStatus();
+                }
+                goStraight();
+                delay(300);
+            } else {
+                turnRight();
+                delay(1100);
+                while(!(frontRightW && frontLeftW))
+                {
+                    readStatus();
+                }
+                goStraight();
+                delay(300);
+            }
+            count+=1;
+            if(count == 8) count = 0;
+        }
+    }
+</code></pre>
+
+
 
                                   <ul class="list-inline">
                                       <li>Date: Septmeber 14, 2018</li>
