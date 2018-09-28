@@ -76,7 +76,7 @@ void setup()
   servo1.attach(6,1300,1700);  // attaches the servo on pin 6 to the servo object
 }
 
-void goStraightOneBlock()
+void lineFollower()
 {
    readStatus();
   
