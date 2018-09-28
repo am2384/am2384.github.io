@@ -249,7 +249,7 @@
               <div class="row">
                   <div class="col-lg-12 text-center">
                       <h2 class="section-heading text-uppercase">Timeline</h2>
-                      <h3 class="section-subheading text-muted">the evolution of YAAAS</h3>
+                      <h3 class="section-subheading text-muted">See how team YAAAS developed our project over time</h3>
                   </div>
               </div>
               <div class="row">
@@ -314,9 +314,9 @@
                           <li class="timeline-inverted">
                               <div class="timeline-image">
                                   <h4>
-                                      Be Part
-                                      <br>Of Our
-                                      <br>Story!
+                                      Wow
+                                      <br>We
+                                      <br>Won
                                   </h4>
                               </div>
                           </li>
@@ -385,33 +385,9 @@
                       <span class="copyright">Copyright &copy; yaaas inc 2018</span>
                   </div>
                   <div class="col-md-4">
-                      <ul class="list-inline social-buttons">
-                          <li class="list-inline-item">
-                              <a href="#">
-                                  <i class="fa fa-twitter"></i>
-                              </a>
-                          </li>
-                          <li class="list-inline-item">
-                              <a href="#">
-                                  <i class="fa fa-facebook"></i>
-                              </a>
-                          </li>
-                          <li class="list-inline-item">
-                              <a href="#">
-                                  <i class="fa fa-linkedin"></i>
-                              </a>
-                          </li>
-                      </ul>
                   </div>
                   <div class="col-md-4">
-                      <ul class="list-inline quicklinks">
-                          <li class="list-inline-item">
-                              <a href="#">Privacy Policy</a>
-                          </li>
-                          <li class="list-inline-item">
-                              <a href="#">Terms of Use</a>
-                          </li>
-                      </ul>
+                      <p> We the best </p>
                   </div>
               </div>
           </div>
@@ -674,8 +650,7 @@ void loop() {
                                   <p align="left"> To make the robot follow a line, we use the front two sensors in the middle to trace a line, and have three functions goStraight(), adjustRight(), adjustLeft() to adjust directions based on sensor inputs. When both sensors read white, the robot goStraight() with two wheels running in the same speed. When left front sensor goes out of the line edge and reads black, adjustRight() is called, which stops the right wheel and only turns the left wheel, so that the robot can adjust towards right. And when the right front sensor reads black, we have adjustLeft() doing the opposite. The functions run in a loop so that the robot can make adjustments periodically. </p>
                                   <p align="left"> The code for Line Follower, which only utilizes the two front sensors, is written below: </p>
 
-                                  <pre><code>
-    void lineFollower()
+                                  <pre><code>void lineFollower()
     {
         readStatus();
 
@@ -702,8 +677,7 @@ void loop() {
                                   <p align="left"> To make a figure eight, in the main loop() we call lineFollower() and turnIntersection(char direction) once each, so the robot goes straight and turns appropriately into a figure 8. </p>
                                   <img class="img-fluid d-block mx-auto" src="img/portfolio/figure8.gif" alt="Figure 8 Gif" style="width:40vw;">
                                   <p align="left"> The code for turnIntersection() function is written below: </p>
-                                  <pre><code>
-    void turnIntersection(char direction)
+                                  <pre><code>void turnIntersection(char direction)
     {
         if(backRightW && backLeftW)
         {
