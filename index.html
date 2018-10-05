@@ -762,22 +762,24 @@ void loop() {
                                   <p align="left">There are a few things to observe here. Notice the graph for 4620 Hz in green. The spike corresponding to this frequency appeared in one of the last bins. When we tried higher frequencies of 5280 Hz and 5940 Hz, aliasing occured, since we can see that the spikes corresponding to those frequencies appeared in lower bin numbers. </p>
                                   <p align="left">Thus, we conclude that the highest frequency detectable with the current sampling rate is approximately 4620 Hz, or more accurately, between 4620 Hz and 5280 Hz. This implies the sampling frequency is between 9240 Hz and 10560 Hz. Remember the Nyquist-Shannon Sampling theorem, which says the highest frequency detectable is half the sampling frequency. The IR team had a much higher sampling rate of ~ 40,000 Hz, but, as the datasheet indicates, precision is sacrificed by sampling at such a fast rate. Since the Audio team needs a higher precision to detect a much tiny microphone signal, we reduced our sampling frequency to 9600 Hz. We also used the analogRead() function, instead of running the ADC in free running mode. </p>
                                   <p align="left">Then, our next job was to explore how to get the microphone signal into the arduino, with a good signal-to-noise ratio. Firstly, the voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz, and that of a typical adult female from 165 to 255 Hz. SInce we wanted a clean 660 Hz signal, we built a simple RC high-pass filter with R = 37 Ohms and C = 6.8 nF. This gives a cutoff frequency of 634 Hz. We tested this circuit with different frequencies to see how much this attenuates lower frequency components compared with the desired 660 Hz. The following lists our results with the input signal peak-to-peak value of 160 mV and the attenuation at various frequencies lower than 660 Hz.</p>
+                                  <p align="left">The attenuation coefficient for 100 Hz signal is 20*log (66/160)    = -7.7 dB BELOW:</p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc3.jpg" alt="">
+                                  <p align="left">The attenuation coefficient for 150 Hz signal is 20*log (80/160)    = -6 dB BELOW:</p>
+
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc1.jpg" alt="">
+                                  <p align="left">The attenuation coefficient for 250 Hz signal is 20*log (111/160)  = -3 dB BELOW:</p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc2.jpg" alt="">
+                                  <p align="left">The attenuation coefficient for 660 Hz signal is 20*log (158/160)   = -0.1 dB BELOW:</p>
+
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc5.jpg" alt="">
-                                  <ul class="list-inline">
-                                      <li>The attenuation coefficient for 100 Hz signal is 20*log (66/160)  = -7.7 dB</li>
-                                      <li>The attenuation coefficient for 150 Hz signal is 20*log (80/160)  = -6 dB</li>
-                                      <li>The attenuation coefficient for 250 Hz signal is 20*log (111/160) = -3 dB</li>
-                                      <li>The attenuation coefficient for 660 Hz signal is 20*log (158/160)   = -0.1 dB</li>
-                                  </ul>
-                                  <p align="left">Next, we built an op-amp inverting amplifier with a gain=R2/R1 of 241. Instead of grounding the noninverting input, we biased it at 2.5 V so that the amplified microphone signal coming out will have AC oscillations around 2.5V. This will ensure we do not exceed the supply line voltages.  </p>
+                                  <p align="left">Next, we built an op-amp inverting amplifier with a gain=R2/R1 of 241. Instead of grounding the noninverting input, we biased it at 2.5 V so that the amplified microphone signal coming out will have AC oscillations around 2.5V. We also offset the AC signal coming from the microphone by 2.5 Volts, so that the differential amplifier only amplified the small signal microphone AC input. This also ensured we did not have clipping due to signal dipping below ground. As shown in the circuit below, the microphone signal passed through the capacitor which blocked the DC. The other side of the capacitor was connected to 2.5V through the 3.2K resistor. Then, we had V+ = 2.5V and V- = 2.5 + microphone small signal. </p>
+
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/Circuit.jpg" alt="">
-                                  <p align="left">We built the amplifier with a calculated gain of 240x.  </p>
-                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab2/FFTCircuit.jpeg" alt="">
-                                  <p align="left">This is an amplifier connected to a high pass filter. We tested the circuit with a signal generator outputting 660Hz. The amplifier did not work with input offset, but when we remove the offset and just inputted ground voltage, we did observed an amplified, but cutoffed signal from the oscilloscope.  </p>
-                                  <p align="left">We tested the microphone circuit by observing its output signal under 660Hz on the oscilloscope. The pk-pk is as small as about 3mV. This means that a big gain through the amplifier is desired. We run FFT on the oscilloscope and see a peak at about 660Hz.  Then we connect microphone output to the amplifier and see an amplified (but cutoffed) signal on the oscilloscope.</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab2/FFTCircuit.jpeg" alt=>
+                                  <p align="left">Raw, Unamplified Microphone Output with input from Audio generator app at 660 Hz (Below)</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc7.jpg" alt="">
+                                  <p align="left">Amplified Microphone Output with input from Audio generator app at 660 Hz (Below)</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab2/Osc6.jpg" alt="">
 
 
                                   <ul class="list-inline">
