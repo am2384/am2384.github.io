@@ -1,14 +1,4 @@
-/*
-fft_adc_serial.pde
-guest openmusiclabs.com 7.7.14
-example sketch for testing the fft library.
-it takes in data on ADC0 (Analog0) and processes them
-with the fft. the data is sent out over the serial
-port at 115.2kb.
-*/
 
-#define LOG_OUT 1 // use the log output function
-#define FFT_N 256 // set to 256 point fft
 
 #include <FFT.h> // include the library
 #include <Servo.h>
@@ -18,10 +8,11 @@ Servo servo1;  // create servo object for the right servo
 
 int line[5] = {0, 0, 0, 0, 0};
 int error = 0;
-int Kp = 2;
+int Kp = 19;
 int Ki = 2;
 int Kd = 2;
-int originalSpeed = 45;
+int dT = 1;
+int originalSpeed = 60;
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int errorSum = 0;
@@ -41,7 +32,12 @@ void setup() {
 }
 
 void loop() {
-  PIDControl();
+  if (!checkIntersection())
+    PIDControl();
+  else {
+    //turn right code thing
+    turnRightSweep();
+  }
 }
 
 void PIDControl()
@@ -50,17 +46,33 @@ void PIDControl()
   errorSum += error * dT;
   errorDiff = (error - prev_error)/dT;
   prev_error = IRmeasurements(); 
-  motorSpeedL = +(Kp*error + Ki*errorSum + Kd*errorDiff) + originalSpeed; // orignial Speed =  45;
-  motorSpeedR = -(Kp*error + Ki*errorSum + Kd*errorDiff ) + originalSpeed;
   
-  runServo(motorSpeedL - originalSpeed, motorSpeedR - originalSpeed);    // remember error is negative if it turns left 
-  
+  motorSpeedL = -(Kp*error) + originalSpeed; // orignial Speed =  45;
+  motorSpeedR = +(Kp*error) + originalSpeed;
+ 
+  runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left 
+ 
+}
+
+void turnRightSweep() {
+  runServo(60,-20);
+  delay(500);
+  IRmeasurements();
+  while(line[0] + line[1] + line[2] + line[3] + line[4] < 2) {
+    runServo(60,-20);
+    IRmeasurements();
+  }
 }
 
 void runServo(int leftSpeed, int rightSpeed)
 {
   servo0.write(90+leftSpeed);  
   servo1.write(90-rightSpeed); 
+}
+
+int checkIntersection() {
+  IRmeasurements();
+  return line[0] && line[1] && line[2] && line[3] && line[4];
 }
 
 int IRmeasurements()
