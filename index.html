@@ -742,12 +742,44 @@ void loop() {
                                   <h3>Introduction </h3>
                                   <p align="left">In this lab, we added sensors to our robot, and made analog circuits and a digital filter to interface with the Arduino. One was a microphone circuit capable of detecting a 660 Hz whistle blow signifying the beginning of our maze mapping. The other captured inputs from an IR sensor to detect nearby robots emitting IR at 6.08 kHz, distinguishing them from decoys emitting at 18 kHz. </p>
                                   <h3>IR Team: </h3>
-                                  <p align="left"> First, we tested the Open Music Lab FFT library. We set our function generator to 660 Hz, 1Vpp, offset 0.5V. We ran the fft_adc_serial script that would output frequency data to the serial monitor. We copied the data from there, and graphed the values on Excel against the bin number. Next, we used the function generator to output a several other frequencies (1320 Hz, 1980 Hz, 2640 Hz) and graphed all of them against the same axis. Each data set peaked at an increased bin number as expected, and we verified this value by seeing the peak shift 4 to 5 bins with every 660 Hz increase.  </p>
+                                  <p align="left"> First, we tested the Open Music Lab FFT library. We set our function generator to 660 Hz, 1Vpp, offset 0.5V. We ran the <i>fft_adc_serial</i> script that would output frequency data to the serial monitor. We copied the data from there, and graphed the values on Excel against the bin number. Next, we used the function generator to output a several other frequencies (1320 Hz, 1980 Hz, 2640 Hz) and graphed all of them against the same axis. Each data set peaked at an increased bin number as expected, and we verified this value by seeing the peak shift 4 to 5 bins with every 660 Hz increase.  </p>
                                   <p align="left">Our robot is required to distinguish between 6 kHz and 18 kHz. Therefore, we also tested these values with the same method as described above. We wanted to check that these values were detectable within the Arduino’s bin range. </p>                                  
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/irFFT.png" alt="">
                                   <p align="left">We wired the circuit for the IR emitter, and used an oscilloscope to measure the frequency of its output. We took the measurement by putting two cursors around one cycle on the oscilloscope. It was operating at 6.25 kHz, a similar value to what we were expecting. We did the same for the decoy emitter and found it emitting at 18 kHz. We determined that the output voltage swing from the IR sensor was roughly 50mV peak-to-peak at 1 grid length away. To increase the signal strength we decided to add an amplifier and some filters. The IR sensor feeds into a high-pass filter. This is followed by an non-inverting op-amp amplifier with a gain of 67. This feeds into a low-pass filter. The resulting signal has a peak-to-peak voltage swing of roughly 1V so it’s likely that we’ll want to increase the gain on the amplifier and review the filter circuit input and output impedances. However this appears to be strong enough for the FFT to collect data. The following was used as the schematic for the active bandpass filter:  </p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/IRAmplifier.png" alt="">
-                                  <p align="left">(Image from: https://www.electronics-tutorials.ws/filter/filter_7.html). The High Pass filter removes any DC offset so that the input voltage is zero except for the signal of interest. This is important since the DC offset is also amplified. The amplified DC offset can easily saturate the op-amp when the gain is too high. The low pass stage is for trying to remove harmonic terms and dampen out the higher frequency decoy. Since the frequencies are too close the single stage RC low-pass filter does not filter out the higher terms significantly. As for the IR receiver, the circuit was flipped to change the diode to be on the high side and have the resistor on the low-side. This causes the signal to be low and rise when IR radiation is detected.</p>
+                                  <p align="left">(Image from: https://www.electronics-tutorials.ws/filter/filter_7.html).</p>
+                                  <table style="width:100%">
+                                    <tr>
+                                        <th>Component Name</th>
+                                        <th>Value</th>
+                                    </tr>
+                                    <tr>
+                                        <td>C1</td>
+                                        <td>10nF (not measured)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>C2</td>
+                                        <td>10nF (not measured)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>R1</td>
+                                        <td>5.5008k&#8486;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>R2</td>
+                                        <td>1.79424k&#8486;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>R3</td>
+                                        <td>.98066k&#8486;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>R4</td>
+                                        <td>67.99k&#8486;</td>
+                                    </tr>
+                                  </table>
+                                  <p></p>
+                                  <p align="left">The High Pass filter removes any DC offset so that the input voltage is zero except for the signal of interest. This is important since the DC offset is also amplified. The amplified DC offset can easily saturate the op-amp when the gain is too high. The low pass stage is for trying to remove harmonic terms and dampen out the higher frequency decoy. Since the frequencies are too close, the single stage RC low-pass filter does not filter out the higher terms significantly. As for the IR receiver, the circuit was flipped to change the diode to be on the high side and have the resistor on the low-side. This causes the signal to be low and rise when IR radiation is detected.</p>
                                   <p align="left">Next, we measured the output of our low pass filter through the A0 pin of the Arduino. We used FFT on this input and plotted the frequencies for instances when the IR hat was before the IR sensor, when the decoy was before the sensor, and when nothing was before the sensor.</p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/IRDetection.png" alt="">
                                   <p align="left">Detecting the IR hat required using the output bin from the FFT that corresponds to 6000 Hz. From our earlier FFT testing, we see that this frequency corresponds to bins around 40. We implemented a digital filter by only looking at the values in bins 39-42. Seeing that the IR hat has a large amplitude there, we only detect the IR hat if the bin value is above a certain threshold, which is currently 120. </p>
@@ -761,7 +793,7 @@ void loop() {
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/audioFFT.png" alt="">
                                   <p align="left">There are a few things to observe here. Notice the graph for 4620 Hz in green. The spike corresponding to this frequency appeared in one of the last bins. When we tried higher frequencies of 5280 Hz and 5940 Hz, aliasing occured, since we can see that the spikes corresponding to those frequencies appeared in lower bin numbers. </p>
                                   <p align="left">Thus, we conclude that the highest frequency detectable with the current sampling rate is approximately 4620 Hz, or more accurately, between 4620 Hz and 5280 Hz. This implies the sampling frequency is between 9240 Hz and 10560 Hz. Remember the Nyquist-Shannon Sampling theorem, which says the highest frequency detectable is half the sampling frequency. The IR team had a much higher sampling rate of ~ 40,000 Hz, but, as the datasheet indicates, precision is sacrificed by sampling at such a fast rate. Since the Audio team needs a higher precision to detect a much tiny microphone signal, we reduced our sampling frequency to 9600 Hz. We also used the analogRead() function, instead of running the ADC in free running mode. </p>
-                                  <p align="left">Then, our next job was to explore how to get the microphone signal into the arduino, with a good signal-to-noise ratio. Firstly, the voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz, and that of a typical adult female from 165 to 255 Hz. SInce we wanted a clean 660 Hz signal, we built a simple RC high-pass filter with R = 37 Ohms and C = 6.8 nF. This gives a cutoff frequency of 634 Hz. We tested this circuit with different frequencies to see how much this attenuates lower frequency components compared with the desired 660 Hz. The following lists our results with the input signal peak-to-peak value of 160 mV and the attenuation at various frequencies lower than 660 Hz.</p>
+                                  <p align="left">Then, our next job was to explore how to get the microphone signal into the arduino, with a good signal-to-noise ratio. Firstly, the voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz, and that of a typical adult female from 165 to 255 Hz. SInce we wanted a clean 660 Hz signal, we built a simple RC high-pass filter with R = 37 Ohms and C = 6.8 nF. This gives a cutoff frequency of 634 Hz. We tested this circuit with different frequencies to see how much this attenuates lower frequency components compared with the desired 660 Hz. The following lists our results with the <b>input signal peak-to-peak value of 160 mV</b> and the attenuation at various frequencies lower than 660 Hz.</p>
                                   <p align="left">The attenuation coefficient for 100 Hz signal is 20*log (66/160)    = -7.7 dB BELOW:</p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc3.jpg" alt="">
                                   <p align="left">The attenuation coefficient for 150 Hz signal is 20*log (80/160)    = -6 dB BELOW:</p>
@@ -772,10 +804,11 @@ void loop() {
                                   <p align="left">The attenuation coefficient for 660 Hz signal is 20*log (158/160)   = -0.1 dB BELOW:</p>
 
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc5.jpg" alt="">
-                                  <p align="left">Next, we built an op-amp inverting amplifier with a gain=R2/R1 of 241. Instead of grounding the noninverting input, we biased it at 2.5 V so that the amplified microphone signal coming out will have AC oscillations around 2.5V. We also offset the AC signal coming from the microphone by 2.5 Volts, so that the differential amplifier only amplified the small signal microphone AC input. This also ensured we did not have clipping due to signal dipping below ground. As shown in the circuit below, the microphone signal passed through the capacitor which blocked the DC. The other side of the capacitor was connected to 2.5V through the 3.2K resistor. Then, we had V+ = 2.5V and V- = 2.5 + microphone small signal. </p>
+                                  <p align="left">Next, we built an op-amp inverting amplifier with a gain=R2/R1 of 241. Instead of grounding the noninverting input, we biased it at 2.5 V so that the amplified microphone signal coming out will have AC oscillations around 2.5V. We also offset the AC signal coming from the microphone by 2.5 Volts, so that the differential amplifier <b>only</b> amplified the small signal microphone AC input. This also ensured we did not have clipping due to signal dipping below ground. As shown in the circuit below, the microphone signal passed through the capacitor which blocked the DC. The other side of the capacitor was connected to 2.5V through the 3.2K resistor. Then, we had V+ = 2.5V and V- = 2.5 + microphone small signal. </p>
 
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/Circuit.jpg" alt="">
-                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab2/FFTCircuit.jpeg" alt=>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab2/FFTCircuit.jpeg" alt="">
+                                  <p align="left">We tested the raw microphone circuit by observing its output signal under 660Hz on the oscilloscope. The pk-pk is as small as about 104mV as shown below.</p>
                                   <p align="left">Raw, Unamplified Microphone Output with input from Audio generator app at 660 Hz (Below)</p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/osc7.jpg" alt="">
                                   <p align="left">Amplified Microphone Output with input from Audio generator app at 660 Hz (Below)</p>
