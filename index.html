@@ -775,7 +775,7 @@ void loop() {
                                   <p align="left">Next, we built an op-amp inverting amplifier with a gain=R2/R1 of 241. Instead of grounding the noninverting input, we biased it at 2.5 V so that the amplified microphone signal coming out will have AC oscillations around 2.5V. This will ensure we do not exceed the supply line voltages.  </p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/Circuit.jpg" alt="">
                                   <p align="left">We built the amplifier with a calculated gain of 240x.  </p>
-                                  <p align="left">[new circuit diagram goes here]</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab2/FFTCircuit.jpeg" alt="">
                                   <p align="left">This is an amplifier connected to a high pass filter. We tested the circuit with a signal generator outputting 660Hz. The amplifier did not work with input offset, but when we remove the offset and just inputted ground voltage, we did observed an amplified, but cutoffed signal from the oscilloscope.  </p>
                                   <p align="left">We tested the microphone circuit by observing its output signal under 660Hz on the oscilloscope. The pk-pk is as small as about 3mV. This means that a big gain through the amplifier is desired. We run FFT on the oscilloscope and see a peak at about 660Hz.  Then we connect microphone output to the amplifier and see an amplified (but cutoffed) signal on the oscilloscope.</p>
 
