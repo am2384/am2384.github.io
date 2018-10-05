@@ -12,16 +12,21 @@ int Kp = 19;
 int Ki = 2;
 int Kd = 2;
 int dT = 1;
-int originalSpeed = 60;
+int originalSpeed = 50;
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int errorSum = 0;
 int errorDiff = 0;
 int prev_error = 0;
+int counter = 1001;
+
+char* directions = "lrrrrlll";
+int count = 0;
 
 
 
 void setup() {
+  //Serial.begin(9600);
   servo0.attach(3,1300,1700);  // attaches the servo on pin 5 to the servo object
   servo1.attach(5,1300,1700);  // attaches the servo on pin 6 to the servo object
   pinMode(9, INPUT);
@@ -32,11 +37,21 @@ void setup() {
 }
 
 void loop() {
-  if (!checkIntersection())
+  if (!checkIntersection()){
     PIDControl();
+    counter = counter > 150000 ? counter: counter + 1;
+    if (counter == 250)
+      count = (count+1) % 8;
+  }
   else {
-    //turn right code thing
-    turnRightSweep();
+    if(directions[count] == 'l')
+    {
+      turnLeftSweep();
+    } else 
+    {
+      turnRightSweep();
+    }
+    counter = 0;
   }
 }
 
@@ -47,7 +62,7 @@ void PIDControl()
   errorDiff = (error - prev_error)/dT;
   prev_error = IRmeasurements(); 
   
-  motorSpeedL = -(Kp*error) + originalSpeed; // orignial Speed =  45;
+  motorSpeedL = -(Kp*error) + originalSpeed; // 
   motorSpeedR = +(Kp*error) + originalSpeed;
  
   runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left 
@@ -58,8 +73,22 @@ void turnRightSweep() {
   runServo(60,-20);
   delay(500);
   IRmeasurements();
+  runServo(60,60);
+  delay(50);
   while(line[0] + line[1] + line[2] + line[3] + line[4] < 2) {
     runServo(60,-20);
+    IRmeasurements();
+  }
+}
+
+void turnLeftSweep() {
+  runServo(-20,60);
+  delay(450);
+  IRmeasurements();
+  runServo(60,60);
+  delay(50);
+  while(line[0] + line[1] + line[2] + line[3] + line[4] < 2) {
+    runServo(-20,60);
     IRmeasurements();
   }
 }
