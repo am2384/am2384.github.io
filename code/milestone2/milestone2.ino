@@ -22,7 +22,7 @@ int errorSum = 0;
 int errorDiff = 0;
 int prev_error = 0;
 int counter = 1001;
-
+int turn = 0;
 bool IRHAT = false;
 
 char* directions = "lrrrrlll";
@@ -48,23 +48,24 @@ void setup() {
 void loop() {
 
 
- 
-  if (!checkIntersection()){
-    PIDControl();
-    counter = counter > 150000 ? counter: counter + 1;
-    if (counter == 250)
-      count = (count+1) % 8;
-  }
-  else {
-    if(directions[count] == 'l')
-    {
-      turnLeftSweep();
-    } else 
-    {
-      turnRightSweep();
-    }
-    counter = 0;
-  }
+// 
+//  if (!checkIntersection()){
+//    PIDControl();
+//    counter = counter > 150000 ? counter: counter + 1;
+//    if (counter == 250)
+//      count = (count+1) % 8;
+//  }
+//  else {
+//    if(directions[count] == 'l')
+//    {
+//      turnLeftSweep();
+//    } else 
+//    {
+//      turnRightSweep();
+//    }
+//    counter = 0;
+//  }
+  
   
   
   
@@ -73,13 +74,19 @@ void loop() {
   if(result == 1){
     Serial.println("Stop Found IR");
     //IRHAT = true;
-    make180turn();
+    make180turn2();
+    turn = 0;
+    delay(1000);
+    delay(1000);
+    delay(1000);
     //IRHAT = false;
     
   } else 
   {
     IRHAT = false;
     Serial.println("NO IR");
+    goStraight();
+    //PIDControl();
   }
   result=0;
 }
@@ -90,8 +97,20 @@ void make180turn()
   turnRightSweep();
  
 }
+
+void make180turn2()
+{
+   
+   while(turn<1250){
+     runServo(60,-20);
+     
+     Serial.println("Turning Turning");
+     turn++;
+   }
+   turn=0;
+}
 int readIR(){
-  cli();  // UDRE interrupt slows this way down on arduino1.0
+  //cli();  // UDRE interrupt slows this way down on arduino1.0
     for (int i = 0 ; i < 512 ; i += 2) { // save 256 samples
       while(!(ADCSRA & 0x10)); // wait for adc to be ready
       ADCSRA = 0xf5; // restart adc
@@ -107,7 +126,7 @@ int readIR(){
     fft_reorder(); // reorder the data before doing the fft
     fft_run(); // process the data in the fft
     fft_mag_log(); // take the output of the fft
-    sei();
+    //sei();
     if(fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120){
       return 1;
     }
