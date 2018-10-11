@@ -162,7 +162,7 @@
                                   <i class="fa fa-plus fa-3x"></i>
                               </div>
                           </div>
-                          <img class="img-fluid" src="img/portfolio/04-thumbnail.jpg" alt="">
+                          <img class="img-fluid" src="img/portfolio/lab2.JPG" alt="">
                       </a>
                       <div class="portfolio-caption">
                           <h4>Lab 2</h4>
@@ -743,7 +743,7 @@ void loop() {
                                   <p align="left">In this lab, we added sensors to our robot, and made analog circuits and a digital filter to interface with the Arduino. One was a microphone circuit capable of detecting a 660 Hz whistle blow signifying the beginning of our maze mapping. The other captured inputs from an IR sensor to detect nearby robots emitting IR at 6.08 kHz, distinguishing them from decoys emitting at 18 kHz. </p>
                                   <h3>IR Team: </h3>
                                   <p align="left"> First, we tested the Open Music Lab FFT library. We set our function generator to 660 Hz, 1Vpp, offset 0.5V. We ran the <i>fft_adc_serial</i> script that would output frequency data to the serial monitor. We copied the data from there, and graphed the values on Excel against the bin number. Next, we used the function generator to output a several other frequencies (1320 Hz, 1980 Hz, 2640 Hz) and graphed all of them against the same axis. Each data set peaked at an increased bin number as expected, and we verified this value by seeing the peak shift 4 to 5 bins with every 660 Hz increase.  </p>
-                                  <p align="left">Our robot is required to distinguish between 6 kHz and 18 kHz. Therefore, we also tested these values with the same method as described above. We wanted to check that these values were detectable within the Arduino’s bin range. </p>                                  
+                                  <p align="left">Our robot is required to distinguish between 6 kHz and 18 kHz. Therefore, we also tested these values with the same method as described above. We wanted to check that these values were detectable within the Arduino’s bin range. </p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/irFFT.png" alt="">
                                   <p align="left">We wired the circuit for the IR emitter, and used an oscilloscope to measure the frequency of its output. We took the measurement by putting two cursors around one cycle on the oscilloscope. It was operating at 6.25 kHz, a similar value to what we were expecting. We did the same for the decoy emitter and found it emitting at 18 kHz. We determined that the output voltage swing from the IR sensor was roughly 50mV peak-to-peak at 1 grid length away. To increase the signal strength we decided to add an amplifier and some filters. The IR sensor feeds into a high-pass filter. This is followed by an non-inverting op-amp amplifier with a gain of 67. This feeds into a low-pass filter. The resulting signal has a peak-to-peak voltage swing of roughly 1V so it’s likely that we’ll want to increase the gain on the amplifier and review the filter circuit input and output impedances. However this appears to be strong enough for the FFT to collect data. The following was used as the schematic for the active bandpass filter:  </p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab2/IRAmplifier.png" alt="">
