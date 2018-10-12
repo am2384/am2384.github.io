@@ -40,7 +40,7 @@ void loop()
   
 
   /*To read particular information such as treasure, color, north wall, etc about a particular cell, 
-  call robot_read(r,c), treasure_read, color_read, north_read, is_explored, etc*/
+  call robot_read(r,c), treasure_read(r,c), color_read(r,c), north_read(r,c), is_explored(r,c), etc*/
   delay(10000);
 
 }
