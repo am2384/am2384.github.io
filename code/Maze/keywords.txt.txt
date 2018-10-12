@@ -1,0 +1,15 @@
+Maze 			KEYWORD1
+treasure_read 	KEYWORD2
+walls_read 		KEYWORD3
+color_read 		KEYWORD4
+north_write 	KEYWORD5
+east_write 		KEYWORD6
+south_write 	KEYWORD7
+west_write 		KEYWORD8
+north_read 		KEYWORD9
+east_read 		KEYWORD10
+south_read 		KEYWORD11
+west_read 		KEYWORD12   
+shape_write 	KEYWORD13   
+shape_read 		KEYWORD14
+disp 			KEYWORD15
