@@ -15,13 +15,15 @@ int motorSpeedL = 0;
 int motorSpeedR = 0;
 int counter = 1001;
 int turn = 0;
-int sensorPinRight = A1;
-int sensorValueRight;
 int errorsum = 0;
 int prev_error = 0;
 char* directions = "lrrrrlll";
 int count = 0;
 int result;
+int sensorPinRight = A1;
+int sensorValueRight;
+int sensorPinFront = A2;
+int sensorValueFront;
 
 void setup() {
   //Serial.begin(115200);
@@ -41,11 +43,11 @@ void loop() {
   {
     make180turn();
   }    
-   if (!checkIntersection())
+   if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
   } 
-  else
+  else // we are at an intersection
   {
     //stopServos();
     sensorValueRight = analogRead(sensorPinRight);
