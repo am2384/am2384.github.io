@@ -1,7 +1,7 @@
 #define LOG_OUT 1 // use the log output function
 #define FFT_N 256 // set to 256 point fft
 
-//#include <FFT.h> // include the library
+#include <FFT.h> // include the library
 #include <Servo.h>
 
 Servo servo0;  // create servo object for the left servo
@@ -28,10 +28,6 @@ void setup() {
   Serial.begin(9600);
   servo0.attach(3,1300,1700);  // attaches the servo on pin 5 to the servo object
   servo1.attach(5,1300,1700);  // attaches the servo on pin 6 to the servo object
-  //TIMSK0 = 0; // turn off timer0 for lower jitter
-  /*ADCSRA = 0xe5; // set the adc to free running mode
-  ADMUX = 0x40; // use adc0
-  DIDR0 = 0x01; // turn off the digital input for adc0*/
   pinMode(9, INPUT);
   pinMode(10, INPUT);
   pinMode(11, INPUT);
@@ -41,6 +37,10 @@ void setup() {
 
 void loop() {
 
+  if(readIR()==1)
+  {
+    make180turn();
+  }    
    if (!checkIntersection())
   {
     PIDControl();
@@ -57,42 +57,16 @@ void loop() {
     else
     {
       PIDControl();
-      //Serial.println("wall");
     }
   }
-  
-//  else 
-//  {
-//    if(directions[count] == 'l')
-//    {
-//      turnLeftSweep();
-//    } else 
-//    {
-//      turnRightSweep();
-//    }
-//    counter = 0;
-//  }
-  
-//  result = readIR();
-//  Serial.println("exit IR");
-//  if(result == 1)
-//  {
-//    Serial.println("Stop Found IR");
-//    make180turn2();
-//  } else 
-//  {
-//    Serial.println("NO IR");
-//    goStraight();
-//    //PIDControl();
-//  }
-//  result=0;
-}
 
 
 void make180turn()
 {
-  turnRightSweep();
- 
+    runServo(50, -30);
+    delay(1800);
+    runServo(10, 10);
+    delay(400);
 }
 
 void make180turn2()
@@ -105,32 +79,47 @@ void make180turn2()
    }
    turn=0;
 }
-//int readIR(){
-//  //cli();  // UDRE interrupt slows this way down on arduino1.0
-//    for (int i = 0 ; i < 512 ; i += 2) { // save 256 samples
-//      while(!(ADCSRA & 0x10)); // wait for adc to be ready
-//      ADCSRA = 0xf5; // restart adc
-//      byte m = ADCL; // fetch adc data
-//      byte j = ADCH;
-//      int k = (j << 8) | m; // form into an int
-//      k -= 0x0200; // form into a signed int
-//      k <<= 6; // form into a 16b signed int
-//      fft_input[i] = k; // put real data into even bins
-//      fft_input[i+1] = 0; // set odd bins to 0
-//    }
-//    fft_window(); // window the data for better frequency response
-//    fft_reorder(); // reorder the data before doing the fft
-//    fft_run(); // process the data in the fft
-//    fft_mag_log(); // take the output of the fft
-//    //sei();
-//    if(fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120){
-//      return 1;
-//    }
-//    else{
-//      return 0;
-//    }
-//    
-//}
+
+int readIR(){
+    cli();  // UDRE interrupt slows this way down on arduino1.0
+    byte adcsra_temp = ADCSRA;
+    byte adcmux_temp = ADMUX;
+    byte didr0_temp = DIDR0;
+    TIMSK0 = 0; // turn off timer0 for lower jitter
+    ADCSRA = 0xe5; // set the adc to free running mode
+    ADMUX = 0x40; // use adc0 //required for fft!
+    DIDR0 = 0x01; // turn off the digital input for adc0
+    for (int i = 0 ; i < 512 ; i += 2) 
+    { // save 256 samples
+      while(!(ADCSRA & 0x10)); // wait for adc to be ready
+      ADCSRA = 0xf5; // restart adc
+      byte m = ADCL; // fetch adc data
+      byte j = ADCH;
+      int k = (j << 8) | m; // form into an int
+      k -= 0x0200; // form into a signed int
+      k <<= 6; // form into a 16b signed int
+      fft_input[i] = k; // put real data into even bins
+      fft_input[i+1] = 0; // set odd bins to 0
+    }
+    fft_window(); // window the data for better frequency response
+    fft_reorder(); // reorder the data before doing the fft
+    fft_run(); // process the data in the fft
+    fft_mag_log(); // take the output of the fft
+    TIMSK0 = 1; // turn off timer0 for lower jitter
+    ADCSRA = adcsra_temp; // set the adc to free running mode
+    ADMUX = adcmux_temp; // use adc0 //required for fft!
+    DIDR0 = didr0_temp; // turn off the digital input for adc0
+    sei();
+    Serial.println(fft_log_out[39]);
+    if(fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120)
+    {
+      return 1;
+    }
+    else{
+      return 0;
+    }
+    
+}
 
 void PIDControl()
 {
@@ -146,18 +135,6 @@ void turnRightSweep()
   delay(900);
   runServo(10, 10);
   delay(400);
-  
-//  runServo(50,0);
-//  IRmeasurements();
-//  while(line[0] + line[1] + line[2] + line[3] + line[4] > 0){
-//    IRmeasurements();
-//  }
-//  runServo(60,10);
-//  IRmeasurements();
-//  while(line[0] + line[1] + line[2] + line[3] + line[4] < 2) {
-//    runServo(60,0);
-//    IRmeasurements();
-//  }
 }
 
 void mydelay(int count)
@@ -169,15 +146,10 @@ void mydelay(int count)
 }
 
 void turnLeftSweep() {
-  runServo(-20,60);
-  mydelay(450);
-  IRmeasurements();
-  runServo(60,60);
-  mydelay(50);
-  while(line[0] + line[1] + line[2] + line[3] + line[4] < 2) {
-    runServo(-20,60);
-    IRmeasurements();
-  }
+  runServo(-30, 50);
+  delay(900);
+  runServo(10, 10);
+  delay(400);
 }
 
 void runServo(int leftSpeed, int rightSpeed)
