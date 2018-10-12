@@ -35,6 +35,7 @@ void setup() {
   pinMode(11, INPUT);
   pinMode(12, INPUT);
   pinMode(13, INPUT);
+  pinMode(7, OUTPUT);
 }
 
 void loop() {
@@ -51,22 +52,28 @@ void loop() {
   {
     //stopServos();
     sensorValueRight = analogRead(sensorPinRight);
-    Serial.println(sensorValueRight);
-    if(sensorValueRight<200){
-      //Serial.println("no wall");
+    sensorValueFront = analogRead(sensorPinFront);
+    if(sensorValueRight<200){ // no wall to right
+      digitalWrite(7, HIGH);
       turnRightSweep();
+      digitalWrite(7, LOW);
+    }
+    else if (sensorValueRight>200 && sensorValueFront>200) // wall to right, wall to front
+    {
+      turnLeftSweep();
     }
     else
     {
       PIDControl();
     }
   }
+}
 
 
 void make180turn()
 {
     runServo(50, -30);
-    delay(1800);
+    delay(2000);
     runServo(10, 10);
     delay(400);
 }
