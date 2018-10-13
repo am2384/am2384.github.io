@@ -849,15 +849,14 @@ void loop() {
                                   <p align="left">To achieve Milestone 2, our team needed to add capability for our rover to perform right-hand wall following and avoid other rovers (through IR hat detection). We are asked to demonstrate these capabilities individually, and to integrate them into one rover. </p>
 								  <h3>Modifications to Robot Structure</h3>
 								  <p align="left">Our robot had a few issues when trying to complete milestone one, such as lack of space on the robot, lack of balance, and a design that was not structurally strong. As such, we decided to give our robot a makeover! We made the wheels smaller for more control, and made the robot such that several layers of plates could be stacked on top of each other to provide ample space for batteries, breadboards, and the arduino. We also incorporated five line sensors equally spaced along the bottom of the robot, instead of two at the front and two at the back. We soldered male pin headers onto the new sensors, and used male-female cables to neatly attach them to rest of the circuit. We also changed the location of our stabilizing wheel, moving it from the front to the back to assist with stability. </p>
-                                  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img1.jpeg" alt="">
-								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img2.jpeg" alt="">
+                                  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img1.jpg" alt="">
+								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img2.jpg" alt="">
 								  <h3>Schmitt Triggers</h3>
 								  <p align="left">We also realized that we would not have enough analog inputs to support all of the sensors that we required on our robot. So, we used Schmitt Triggers, a logic input type that provides two threshold voltage levels for rising and falling edges. In other words, using one would give us a square wave signal instead of a noisy input signal, meaning we could use five digital inputs instead of five analog inputs. The following in the standard schematic of a Schmitt Trigger.</p>
 								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img3.png" alt="">
 								  <p align="left">To modify this to work with our application, the inverting input of the op-amp had to be biased at the midpoint between where we wanted the output from switch from high to low and low to high. If R1=0 and R2=inf, then the schmitt trigger would operate as a normal comparator and would switch from high->low or low->high at the voltage of the inverting op-amp terminal. In our case since the voltage at which we wanted the op-amp to switch is at a low voltage we wanted the hysteresis to be small. Ie: in the following plot we wanted 2T to be small.</p>
 								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img4.png" alt="">
-								  <p align="left">Image from: </p>
-								  <a href = "https://en.wikipedia.org/wiki/Schmitt_trigger#/media/File:Hysteresis_sharp_curve.svg"> </a>
+								  <p align="left">(Image from: https://en.wikipedia.org/wiki/Schmitt_trigger#/media/File:Hysteresis_sharp_curve.svg).</p>
 								  <p align="left">To achieve this we R2 must be larger than R1. For the Schmitt Triggers on the robot we set R2 to be 1MOhm and R1 to be around 250Ohms. The inverting terminal of the op-amp is connected to the wiper of a potentiometer. This allows us to set the threshold of the trigger manually. For the line sensors. Output impedance of the sensor is too high so installed a unity voltage-gain current buffer in the middle (also made out of an op-amp). The following is the schematic for this:</p>
 								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img5.png" alt="">
 								  <h3>PID Control</h3>
@@ -867,18 +866,14 @@ void loop() {
   error = IRmeasurements();
   motorSpeedL = -(Kp*error) + originalSpeed; 
   motorSpeedR = +(Kp*error) + originalSpeed;
-  runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left  
-}
-   
-
-   </code></pre>
+  runServo(motorSpeedL, motorSpeedR);  
+}</code></pre>
 								  <p align="left">This is the model that we initially followed to determine position. While this worked at first, we found that it was more effective to consider the positions in between (ie where two side-by-side sensors triggered) and this allowed us to have a number between -4 and +4 as our position and therefore double our control.</p>
 								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img6.png" alt="">
 								  <h3>Objective 1: Wall- Following Algorithm</h3>
-								  <a href = "https://youtu.be/6Vh6D_x2n-Y"> </a>
+								  <iframe width="740" height="416" src="https://youtu.be/6Vh6D_x2n-Y" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 								  <p align="left">We added in a distance sensor which detects distance from the wall and outputs an analog signal. We first developed a simple sensor reading program and looked at output from the sensor to figured out that the threshold value is about 200 for detecting a wall present or absent. We integrated the sensor on our robot on the right side for right-hand wall following. Then, we refactored the figure-8 under PID control code and make the robot to always go straight whenever a wall is detected, and only start detecting intersection and turn right when the wall is absent. This allows our robot to follow a U-shaped wall on right hand.</p>
-								  <pre><code>
-								     sensorValueRight = analogRead(sensorPinRight);
+								  <pre><code>sensorValueRight = analogRead(sensorPinRight);
     sensorValueFront = analogRead(sensorPinFront);
     if(sensorValueRight<200){ // no wall to right
       digitalWrite(7, HIGH);
@@ -892,19 +887,14 @@ void loop() {
     else
     {
       PIDControl();
-    }
-   
-
-   </code></pre>
+    }</code></pre>
 								  <h3>Objective 2: Avoid Other Robots</h3>
 								  <p align="left">In lab 2, we developed robust detection of the IR hat using a mixture of hardware and digital filters. You can see a demonstration of our readIR() function in our lab 2 video, which shows an a print statement when the IR hat is held near the sensor. We integrated this readIR() function and the FFT library with our previous rover control code. In the loop function, we add a call to readIR(). If an IR Hat is detected, we have our rover turn 180 degrees and start moving in the opposite direction. This allows our robot to avoid other robots. See below for a demonstration of this capability.</p>
-								  <pre><code>
-								  if(readIR()==1)
+								  <pre><code> if(readIR()==1)
   {
     make180turn();
-  }  
-								  </code></pre>
-								  <a href = "https://youtu.be/Z5eCU0QA2VY"></a>
+  }</code></pre>
+								  <iframe width="740" height="416" src="https://www.youtube.com/watch?v=Z5eCU0QA2VY&feature=youtu.be" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 								  <h3>Objective 3: Integration</h3>
 								  <p align="left">Lastly, we integrated all of our previous rover control modules into a single module. The rover tracks a line while following a right hand wall. Furthermore, it is constantly checking for an IR hat (other robot), and will turn 180 degrees if one is detected. The code below shows our final main loop.</p>
 								  <pre><code>  if(readIR()==1)
@@ -937,7 +927,7 @@ void loop() {
 }
 								  </code></pre>
 								  <p align="left">In the video below, you will see our rover tracking a line using PID control. When it comes to an line intersection it checks for a wall to the right. If there is a wall, the rover continues straight. If there is no wall, the rover will turn right. The red LED indicates if the rover detects a wall. In the video our rover successfully goes straight through 3 intersections where there is a right-wall. Our rover also successfully turns right twice when there is no right-wall. Lastly, our rover detects another “rover” (IR hat) and turns 180 degrees to avoid the other rover.</p>
-								  <a = href = "https://youtu.be/AwN4xREmKHA"> </a>
+								  <iframe width="740" height="416" src="https://youtu.be/AwN4xREmKHA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                                   <ul class="list-inline">
                                       <li>Date: October 12 2018</li>
                                   </ul>
