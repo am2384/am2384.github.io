@@ -871,7 +871,7 @@ void loop() {
 								  <p align="left">This is the model that we initially followed to determine position. While this worked at first, we found that it was more effective to consider the positions in between (ie where two side-by-side sensors triggered) and this allowed us to have a number between -4 and +4 as our position and therefore double our control.</p>
 								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img6.png" alt="">
 								  <h3>Objective 1: Wall- Following Algorithm</h3>
-								  <iframe width="740" height="416" src="https://www.youtube.com/embed/-6Vh6D_x2n-Y"frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+								  <iframe width="853" height="480" src="https://www.youtube.com/embed/6Vh6D_x2n-Y" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 								  <p align="left">We added in a distance sensor which detects distance from the wall and outputs an analog signal. We first developed a simple sensor reading program and looked at output from the sensor to figured out that the threshold value is about 200 for detecting a wall present or absent. We integrated the sensor on our robot on the right side for right-hand wall following. Then, we refactored the figure-8 under PID control code and make the robot to always go straight whenever a wall is detected, and only start detecting intersection and turn right when the wall is absent. This allows our robot to follow a U-shaped wall on right hand.</p>
 								  <pre><code>sensorValueRight = analogRead(sensorPinRight);
     sensorValueFront = analogRead(sensorPinFront);
@@ -894,7 +894,7 @@ void loop() {
   {
     make180turn();
   }</code></pre>
-								  <iframe width="740" height="416" src="https://www.youtube.com/embed/-Z5eCU0QA2VY"frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+								  <iframe width="853" height="480" src="https://www.youtube.com/embed/Z5eCU0QA2VY" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 								  <h3>Objective 3: Integration</h3>
 								  <p align="left">Lastly, we integrated all of our previous rover control modules into a single module. The rover tracks a line while following a right hand wall. Furthermore, it is constantly checking for an IR hat (other robot), and will turn 180 degrees if one is detected. The code below shows our final main loop.</p>
 								  <pre><code>  if(readIR()==1)
@@ -927,7 +927,7 @@ void loop() {
 }
 								  </code></pre>
 								  <p align="left">In the video below, you will see our rover tracking a line using PID control. When it comes to an line intersection it checks for a wall to the right. If there is a wall, the rover continues straight. If there is no wall, the rover will turn right. The red LED indicates if the rover detects a wall. In the video our rover successfully goes straight through 3 intersections where there is a right-wall. Our rover also successfully turns right twice when there is no right-wall. Lastly, our rover detects another “rover” (IR hat) and turns 180 degrees to avoid the other rover.</p>
-								  <iframe width="740" height="416" src="https://www.youtube.com/embed/-AwN4xREmKHA"frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+								  <iframe width="853" height="480" src="https://www.youtube.com/embed/AwN4xREmKHA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                                   <ul class="list-inline">
                                       <li>Date: October 12 2018</li>
                                   </ul>
