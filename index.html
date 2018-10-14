@@ -176,11 +176,11 @@
                                   <i class="fa fa-plus fa-3x"></i>
                               </div>
                           </div>
-                          <img class="img-fluid" src="img/portfolio/05-thumbnail.jpg" alt="">
+                          <img class="img-fluid" src="img/portfolio/milestone2.jpg" alt="">
                       </a>
                       <div class="portfolio-caption">
                           <h4>Milestone 2</h4>
-                          <p class="text-muted">*jazz hands*</p>
+                          <p class="text-muted">Wall Following & IR Detection</p>
                       </div>
                   </div>
                   <div class="col-md-4 col-sm-6 portfolio-item">
@@ -864,9 +864,9 @@ void loop() {
 								  <pre><code>void PIDControl()
 {
   error = IRmeasurements();
-  motorSpeedL = -(Kp*error) + originalSpeed; 
+  motorSpeedL = -(Kp*error) + originalSpeed;
   motorSpeedR = +(Kp*error) + originalSpeed;
-  runServo(motorSpeedL, motorSpeedR);  
+  runServo(motorSpeedL, motorSpeedR);
 }</code></pre>
 								  <p align="left">This is the model that we initially followed to determine position. While this worked at first, we found that it was more effective to consider the positions in between (ie where two side-by-side sensors triggered) and this allowed us to have a number between -4 and +4 as our position and therefore double our control.</p>
 								  <img class="img-fluid d-block mx-auto" src= "img/milestones/milestone 2/img6.png" alt="">
@@ -900,11 +900,11 @@ void loop() {
 								  <pre><code>  if(readIR()==1)
   {
     make180turn();
-  }    
+  }
    if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
-  } 
+  }
   else // we are at an intersection
   {
     //stopServos();
