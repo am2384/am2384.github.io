@@ -10,13 +10,13 @@ Servo servo1;  // create servo object for the right servo
 int line[5] = {0, 0, 0, 0, 0};
 int error = 0;
 int Kp = 14;
+int KI = 2;
 int originalSpeed = 50;
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int counter = 1001;
 int turn = 0;
 int errorsum = 0;
-int prev_error = 0;
 char* directions = "lrrrrlll";
 int count = 0;
 int result;
@@ -114,7 +114,7 @@ int readIR(){
     fft_reorder(); // reorder the data before doing the fft
     fft_run(); // process the data in the fft
     fft_mag_log(); // take the output of the fft
-    TIMSK0 = 1; // turn off timer0 for lower jitter
+    TIMSK0 = 1; // turn on timer0 for lower jitter
     ADCSRA = adcsra_temp; // set the adc to free running mode
     ADMUX = adcmux_temp; // use adc0 //required for fft!
     DIDR0 = didr0_temp; // turn off the digital input for adc0
@@ -133,9 +133,18 @@ int readIR(){
 void PIDControl()
 {
   error = IRmeasurements();
-  motorSpeedL = -(Kp*error) + originalSpeed; 
-  motorSpeedR = +(Kp*error) + originalSpeed;
-  runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left  
+  errorsum += error;
+  if(errorsum > 10)
+  {
+    errorsum = 10;
+  }
+//  motorSpeedL = -(Kp*error) + originalSpeed; 
+//  motorSpeedR = +(Kp*error) + originalSpeed;
+  
+  motorSpeedL = -(Kp*error + KI*errorsum) + originalSpeed; 
+  motorSpeedR = +(Kp*error + KI*errorsum) + originalSpeed;
+
+  runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left 
 }
 
 void turnRightSweep()
