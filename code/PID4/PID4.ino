@@ -274,18 +274,6 @@ int IRmeasurements()
   } else if(line[4] == 1 && line[0] == 0 && line[1] == 0  && line[2] == 0 && line[3] == 0) ////// 4 only = 4x right 
   {
     error = - 4;
-  } else if(line[4] == 1 && line[3] == 1 && line[2] == 1  && line[1] == 0 && line[0] == 0)//// 2,3 and 4
-  {
-    error = +3;
-  } else if(line[0] == 1 && line[1] == 1 && line[2] == 1  && line[3] == 0 && line[4] == 0) //// 0, 1, and 2
-  {
-    error = -3;
-  } else if(line[4] == 1 && line[3] == 1 && line[2] == 1  && line[1] == 1 && line[3] == 0) ///// 1,2,3 and 4
-  {
-    error = +4;
-  } else if(line[4] == 1 && line[3] == 1 && line[2] == 1  && line[1] == 1 && line[3] == 0) //// 0,1,2 and 3
-  {
-    error = -4;
   } else if(line[4] == 1 && line[3] == 1 && line[2] == 1  && line[1] == 1 && line[3] == 1) ///// 0,1,2,3 and 4
   {
     error = 0;
