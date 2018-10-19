@@ -10,13 +10,11 @@ Servo servo1;  // create servo object for the right servo
 int line[5] = {0, 0, 0, 0, 0};
 int error = 0;
 int Kp = 14;
-int KI = 2;
 int originalSpeed = 50;
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int counter = 1001;
 int turn = 0;
-int errorsum = 0;
 char* directions = "lrrrrlll";
 int count = 0;
 int result;
@@ -52,26 +50,24 @@ void loop() {
   if(readIR()==1)
   {
     make180turn();
-  }    
-   if (!checkIntersection()) // we are not at an intersection
+  } 
+     
+  if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
   } 
   else // we are at an intersection
   {
-    //stopServos();
     Serial.println("INtersection");
     Serial.println("INtersection");
-//    Serial.println(sensorValueRight);
-//    sensorValueFront = analogRead(sensorPinFront);
     if(rightSensor() == 0)
-    { // no wall to right
+    { 
       digitalWrite(7, HIGH);
-//      Serial.println("No wall");
+      Serial.println("No wall");
       turnRightSweep();
       digitalWrite(7, LOW);
       
-    } else if(frontSensor() == 1) // will replace this 
+    } else if(frontSensor() == 1) 
     {
       digitalWrite(7, HIGH);
       turnLeftSweep();
@@ -99,7 +95,6 @@ int rightSensor()
   sensorValueRight = analogRead(sensorPinRight);
   if(sensorValueRight<200) return 0;
   else return 1;
-
 }
 
 void make180turn()
@@ -166,16 +161,8 @@ int readIR(){
 void PIDControl()
 {
   error = IRmeasurements();
-  errorsum += error;
-  if(errorsum > 10)
-  {
-    errorsum = 10;
-  }
   motorSpeedL = -(Kp*error) + originalSpeed; 
   motorSpeedR = +(Kp*error) + originalSpeed;
-  
-//  motorSpeedL = -(Kp*error + KI*errorsum) + originalSpeed; 
-//  motorSpeedR = +(Kp*error + KI*errorsum) + originalSpeed;
 
   runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left 
 }
@@ -249,7 +236,7 @@ int checkIntersection()
   Serial.println(line[3]);
   Serial.println(line[4]);
   Serial.println("");*/
-  return line[0] && line[1] && line[2] && line[3] && line[4];
+  return (line[0] && line[1] && line[2] && line[3] && line[4]);
 }
 
 int IRmeasurements()
@@ -259,20 +246,21 @@ int IRmeasurements()
   line[2] = !(digitalRead(11));
   line[3] = !(digitalRead(12));
   line[4] = !(digitalRead(13));
+  //    0   1   2   3   4
   
   if(line[2] == 1 && line[0] == 0 && line[1] == 0 && line[3] == 0 && line[4] == 0)  ///////////////// 2 only straight 
   {
     error = 0;
-  } else if (line[2] == 1 && line[1] == 1 && line[0] == 0  && line[3] == 0 && line[4] == 0) ///////////// 1 and 2  = 1xleft
+  } else if (line[1] == 1 && line[2] == 1 && line[0] == 0  && line[3] == 0 && line[4] == 0) ///////////// 1 and 2  = 1xleft
   {
     error = +1;
   } else if (line[2] == 1 && line[3] == 1 && line[0] == 0  && line[1] == 0 && line[4] == 0) ////////////  2 and 3 =  1xright 
   {
     error = -1;
-  }else if(line[1] == 1 && line[2] == 0 &&  line[0] == 0  && line[3] == 0 && line[4] == 0) ///////////// 1 only =  2xleft 
+  }else if(line[1] == 1 && line[0] == 0 &&  line[2] == 0  && line[3] == 0 && line[4] == 0) ///////////// 1 only =  2xleft 
   {
     error = +2;
-  } else if(line[3] == 1 && line[1] == 0 && line[0] == 0  && line[3] == 0 && line[4] == 0) /////////// 3 only =  2xright 
+  } else if(line[3] == 1 && line[0] == 0 && line[1] == 0  && line[2] == 0 && line[4] == 0) /////////// 3 only =  2xright 
   {
     error = - 2;
   } else if(line[0] == 1 && line[1] == 1 && line[2] == 0  && line[3] == 0 && line[4] == 0) //////////     0 and 1 =  3x left  
