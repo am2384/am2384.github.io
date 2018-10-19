@@ -21,9 +21,9 @@ char* directions = "lrrrrlll";
 int count = 0;
 int result;
 int sensorPinRight = A1;
-int sensorValueRight;
+int sensorValueRight = 1000;
 int sensorPinFront = A3;
-int sensorValueFront;
+int sensorValueFront = 1000;
 int start = 0;
 
 void setup() {
@@ -39,53 +39,35 @@ void setup() {
   pinMode(7, OUTPUT);
 }
 
-void loop() {
-  if(start == 0)
-  {
-    while(audio() == 0)
-    {
-      Serial.println("No tone");
-    }
-    start = 1;
-  }
+void loop()
+{
+ 
+
+  line[0] = !(digitalRead(9));
+  line[1] = !(digitalRead(10));
+  line[2] = !(digitalRead(11));
+  line[3] = !(digitalRead(12));
+  line[4] = !(digitalRead(13));
+
+  Serial.println(line[0]);
+  Serial.println(line[1]);
+  Serial.println(line[2]);
+  Serial.println(line[3]);
+  Serial.println(line[4]);
+
+  Serial.println(" ");
+
+  delay(100);
+
+
+
+
   
-  if(readIR()==1)
-  {
-    make180turn();
-  }    
-   if (!checkIntersection()) // we are not at an intersection
-  {
-    PIDControl();
-  } 
-  else // we are at an intersection
-  {
-    //stopServos();
-    Serial.println("INtersection");
-    Serial.println("INtersection");
-//    Serial.println(sensorValueRight);
-//    sensorValueFront = analogRead(sensorPinFront);
-    if(rightSensor() == 0)
-    { // no wall to right
-      digitalWrite(7, HIGH);
-//      Serial.println("No wall");
-      turnRightSweep();
-      digitalWrite(7, LOW);
+ 
       
-    } else if(frontSensor() == 1) // will replace this 
-    {
-      digitalWrite(7, HIGH);
-      turnLeftSweep();
-      digitalWrite(7, LOW);
-    }
 
-    else
-    {
-      PIDControl();
-    }
-
-  }
+  
 }
-
 
 int frontSensor()
 {
@@ -152,7 +134,7 @@ int readIR(){
     DIDR0 = didr0_temp; // turn off the digital input for adc0
     
     sei();
-    //Serial.println(fft_log_out[39]);
+    Serial.println(fft_log_out[39]);
     if(fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120)
     {
       return 1;

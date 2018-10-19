@@ -21,9 +21,9 @@ char* directions = "lrrrrlll";
 int count = 0;
 int result;
 int sensorPinRight = A1;
-int sensorValueRight;
+int sensorValueRight = 1000;
 int sensorPinFront = A3;
-int sensorValueFront;
+int sensorValueFront = 1000;
 int start = 0;
 
 void setup() {
@@ -39,7 +39,8 @@ void setup() {
   pinMode(7, OUTPUT);
 }
 
-void loop() {
+void loop()
+{
   if(start == 0)
   {
     while(audio() == 0)
@@ -48,44 +49,51 @@ void loop() {
     }
     start = 1;
   }
+
+  PIDControl();
   
   if(readIR()==1)
   {
     make180turn();
-  }    
-   if (!checkIntersection()) // we are not at an intersection
-  {
-    PIDControl();
-  } 
-  else // we are at an intersection
-  {
-    //stopServos();
-    Serial.println("INtersection");
-    Serial.println("INtersection");
-//    Serial.println(sensorValueRight);
-//    sensorValueFront = analogRead(sensorPinFront);
-    if(rightSensor() == 0)
-    { // no wall to right
-      digitalWrite(7, HIGH);
-//      Serial.println("No wall");
-      turnRightSweep();
-      digitalWrite(7, LOW);
-      
-    } else if(frontSensor() == 1) // will replace this 
-    {
-      digitalWrite(7, HIGH);
-      turnLeftSweep();
-      digitalWrite(7, LOW);
-    }
+  }   
 
-    else
+  if(rightSensor()== 1 && frontSensor()==1)
+  {
+      if (!checkIntersection()) // we are not at an intersection
     {
       PIDControl();
+    } else 
+    {
+      digitalWrite(7, HIGH);
+      turnLeftSweep(); 
+      digitalWrite(7, LOW);
     }
-
+  } else if(rightSensor()==0) // BOTH right wall and front wall
+  {
+      if (!checkIntersection()) // we are not at an intersection
+    {
+      PIDControl();
+    } else 
+    {
+      digitalWrite(7, HIGH);
+      turnRightSweep(); 
+      digitalWrite(7, LOW);
+    }
+  } else 
+  {
+    PIDControl();
   }
-}
 
+
+
+
+
+  
+ 
+      
+
+  
+}
 
 int frontSensor()
 {
@@ -243,12 +251,12 @@ int checkIntersection()
   line[2] = !(digitalRead(11));
   line[3] = !(digitalRead(12));
   line[4] = !(digitalRead(13));
-  /*Serial.println(line[0]);
+  Serial.println(line[0]);
   Serial.println(line[1]);
   Serial.println(line[2]);
   Serial.println(line[3]);
   Serial.println(line[4]);
-  Serial.println("");*/
+  Serial.println(" ");
   return line[0] && line[1] && line[2] && line[3] && line[4];
 }
 
@@ -287,7 +295,12 @@ int IRmeasurements()
   } else if(line[4] == 1 && line[0] == 0 && line[1] == 0  && line[2] == 0 && line[3] == 0) ////// 4 only = 4x right 
   {
     error = - 4;
+  } else if(line[4] == 1 && line[0] == 1 && line[1] == 1  && line[2] == 1 && line[3] == 1) 
+  {
+      error = 0;
   }
+  
+  //Serial.println(error);
   return error;
 }
 
