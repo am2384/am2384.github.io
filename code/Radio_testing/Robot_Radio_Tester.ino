@@ -53,6 +53,33 @@ const char* role_friendly_name[] = { "invalid", "Ping out", "Pong back"};
 role_e role = role_ping_out;
 
 
+typedef union {
+  unsigned c: 8;
+  struct {
+    unsigned t_color: 1;
+    unsigned t_shape: 2;
+    unsigned robot: 1;
+    unsigned west: 1;
+    unsigned east: 1;
+    unsigned south: 1;
+    unsigned north: 1;
+  };
+} square_data_t;
+
+square_data_t maze_data[9][9];
+square_data_t c_square;
+
+int self_x = 0, self_y = 0;
+
+char int_pos(int x, int y) {
+  return x*9 + y;
+}
+
+void ds_tester(void) {
+  c_square.north = 1;
+  c_square.west = 1;
+}
+
 void setup_radio(void) {
   radio.begin();
 
@@ -143,6 +170,8 @@ void setup(void)
   // Print preamble
   //
 
+  ds_tester();
+
   Serial.begin(57600);
   printf_begin();
   printf("\n\rRF24/examples/GettingStarted/\n\r");
@@ -168,7 +197,7 @@ void loop(void)
 {
   char node[16];
   node[0] = 1;
-  node[1] = 0x50;
+  node[1] = c_square.c;//0x50;
   while(!transmit_radio(node,2)){
     delay(1000);
   }
@@ -198,7 +227,7 @@ void loop(void)
   }
   delay(1000);
   node[0] = 0;
-  node[1] = 0x90;
+  node[1] = c_square.c;//0x90;
   while(!transmit_radio(node,2)){
     delay(1000);
   }
