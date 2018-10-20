@@ -91,7 +91,9 @@ bool transmit_radio(char arr[], int n) {
   radio.stopListening();
   Serial.write("sending");
   Serial.write("\n");
-  Serial.write(arr,2);
+  Serial.print((uint8_t) arr[0]);
+  Serial.write("  ");
+  Serial.print((uint8_t) arr[1]);
   Serial.write("\n");
   bool ok = radio.write(arr, n);
 
@@ -127,8 +129,11 @@ bool transmit_radio(char arr[], int n) {
     // Spew it
     Serial.write("recieved");
     Serial.write("\n");
-    Serial.write(ret_val, 2);
+    Serial.print((uint8_t) ret_val[0]);
+    Serial.write("  ");
+    Serial.print((uint8_t) ret_val[1]);
     Serial.write("\n");
+    return true;
   }
 }
 
@@ -162,28 +167,40 @@ void setup(void)
 void loop(void)
 {
   char node[16];
-  node[1] = 0;
-  node[2] = 0x98;
-  while(~transmit_radio(node,2));
+  node[0] = 1;
+  node[1] = 0x50;
+  while(!transmit_radio(node,2)){
+    delay(1000);
+  }
   delay(1000);
-  node[1] = 9;
-  node[2] = 0x80;
-  while(~transmit_radio(node,2));
+  node[0] = 10;
+  node[1] = 0x40;
+  while(!transmit_radio(node,2)){
+    delay(1000);
+  }
   delay(1000);
-  node[1] = 18;
-  node[2] = 0xA0;
-  while(~transmit_radio(node,2));
+  node[0] = 19;
+  node[1] = 0x60;
+  while(!transmit_radio(node,2)){
+    delay(1000);
+  }
   delay(1000);
-  node[1] = 19;
-  node[2] = 0x60;
-  while(~transmit_radio(node,2));
-  delay(5000);
-  node[1] = 10;
-  node[2] = 0x40;
-  while(~transmit_radio(node,2));
+  node[0] = 18;
+  node[1] = 0xA0;
+  while(!transmit_radio(node,2)){
+    delay(1000);
+  }
   delay(1000);
-  node[1] = 1;
-  node[2] = 0x50;
-  while(~transmit_radio(node,2));
+  node[0] = 9;
+  node[1] = 0x80;
+  while(!transmit_radio(node,2)){
+    delay(1000);
+  }
+  delay(1000);
+  node[0] = 0;
+  node[1] = 0x90;
+  while(!transmit_radio(node,2)){
+    delay(1000);
+  }
   delay(1000);
 }
