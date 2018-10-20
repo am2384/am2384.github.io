@@ -9,8 +9,8 @@ Servo servo1;  // create servo object for the right servo
 
 int line[5] = {0, 0, 0, 0, 0};
 int error = 0;
-int Kp = 14;
-int originalSpeed = 90;
+int Kp = 12;
+int originalSpeed = 50;
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int counter = 1001;
@@ -49,39 +49,30 @@ void loop() {
   
   if(readIR()==1)
   {
+    Serial.println("IR Hat Detected");
     make180turn();
   } 
-     
+
   if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
   } 
   else // we are at an intersection
   {
-    Serial.println("INtersection");
-    Serial.println("INtersection");
+    Serial.println("Intersection\n");
     if(rightSensor() == 0)
     { 
-      digitalWrite(7, HIGH);
-      Serial.println("No wall");
       turnRightSweep();
-      digitalWrite(7, LOW);
-      
     } else if(frontSensor() == 1) 
     {
-      digitalWrite(7, HIGH);
       turnLeftSweep();
-      digitalWrite(7, LOW);
     }
-
     else
     {
       PIDControl();
     }
-
   }
 }
-
 
 int frontSensor()
 {
@@ -154,12 +145,12 @@ int readIR(){
     }
     else{
       return 0;
-    }
-    
+    } 
 }
 
 void PIDControl()
 {
+
   error = IRmeasurements();
   motorSpeedL = -(Kp*error) + originalSpeed; 
   motorSpeedR = +(Kp*error) + originalSpeed;
@@ -184,7 +175,7 @@ int audio()
 //      Serial.println(fft_log_out[i]);
 //    }
 
-    if(fft_log_out[19] > 80 || fft_log_out[20] > 80 || fft_log_out[21] > 80)
+    if(fft_log_out[19] > 65 || fft_log_out[20] > 65 || fft_log_out[21] > 65)
     {
       return 1;
     }
@@ -196,10 +187,12 @@ int audio()
 
 void turnRightSweep()
 {
+  digitalWrite(7, HIGH);
   runServo(50, -30);
   delay(900);
   runServo(10, 10);
   delay(400);
+  digitalWrite(7, LOW);
 }
 
 void mydelay(int count)
@@ -211,19 +204,23 @@ void mydelay(int count)
 }
 
 void turnLeftSweep() {
+  digitalWrite(7, HIGH);
   runServo(-30, 50);
   delay(900);
   runServo(10, 10);
   delay(400);
+  digitalWrite(7, LOW);
 }
 
 void runServo(int leftSpeed, int rightSpeed)
 {
+  if(leftSpeed>90) leftSpeed = 90;
+  if(rightSpeed>90) rightSpeed = 90;
   servo0.write(90+leftSpeed);  
   servo1.write(90-rightSpeed); 
 }
 
-int checkIntersection() 
+bool checkIntersection() 
 {
   line[0] = !(digitalRead(9));
   line[1] = !(digitalRead(10));
