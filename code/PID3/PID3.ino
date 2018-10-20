@@ -50,8 +50,12 @@ void loop() {
   if(readIR()==1)
   {
     Serial.println("IR Hat Detected");
-    make180turn();
+    //make180turn();
   } 
+  else
+  {
+    Serial.println("");
+  }
 
   if (!checkIntersection()) // we are not at an intersection
   {
@@ -108,7 +112,7 @@ void make180turn2()
 }
 
 int readIR(){
-    cli();  // UDRE interrupt slows this way down on arduino1.0
+    //cli();  // UDRE interrupt slows this way down on arduino1.0
     byte adcsra_temp = ADCSRA;
     byte adcmux_temp = ADMUX;
     byte didr0_temp = DIDR0;
@@ -136,8 +140,7 @@ int readIR(){
     ADCSRA = adcsra_temp; // set the adc to free running mode
     ADMUX = adcmux_temp; // use adc0 //required for fft!
     DIDR0 = didr0_temp; // turn off the digital input for adc0
-    
-    sei();
+    //sei();
     //Serial.println(fft_log_out[39]);
     if(fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120)
     {
