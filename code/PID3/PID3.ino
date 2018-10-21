@@ -3,6 +3,9 @@
 
 #include <FFT.h> // include the library
 #include <Servo.h>
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
 
 Servo servo0;  // create servo object for the left servo
 Servo servo1;  // create servo object for the right servo
@@ -23,9 +26,14 @@ int sensorValueRight;
 int sensorPinFront = A3;
 int sensorValueFront;
 int start = 0;
-int dir = 0;
-int x = 0;
+int dir = 2;
+int x = 2;
 int y = 0;
+char node[2];
+
+// radio
+RF24 radio(9,10);
+const uint64_t pipes[2] = { 0x000000003CLL, 0x000000003DLL };
 
 typedef union {
   unsigned c: 8;
@@ -55,6 +63,7 @@ void setup() {
   pinMode(2, INPUT);
   pinMode(4, INPUT);
   pinMode(7, INPUT);
+  setup_radio();
 }
 
 void loop() {
@@ -66,15 +75,15 @@ void loop() {
 //    }
 //    start = 1;
 //  }
-  
+//  
   if(readIR()==1)
   {
-    Serial.println("IR Hat Detected");
-    make180turn();
+    //Serial.println("IR Hat Detected");
+    //make180turn();
   } 
   else
   {
-    //Serial.println("");
+    Serial.println("");
   }
 
   if (!checkIntersection()) // we are not at an intersection
@@ -84,27 +93,46 @@ void loop() {
   else // we are at an intersection
   {
     Serial.println("Intersection");
+    if(dir == 0) y--;
+    if(dir == 1) x++;
+    if(dir == 2) y++;
+    if(dir == 3) x--;
+    c_square.east = 0;
+    c_square.south = 0;
+    c_square.west = 0;
+    c_square.north = 0;
     if(rightSensor() == 0)
     { 
     turnRightSweep();
-      if(dir == 0) y++;
-      if(dir == 1) x++;
-      if(dir == 2) y--;
-      if(dir == 3) x--;
       if(dir == 0) c_square.east = 0;
       else if (dir == 1) c_square.south = 0;
       else if (dir == 2) c_square.west = 0;
       else c_square.north = 0;
+      if(frontSensor() == 1)
+      {
+        if(dir == 0){
+          c_square.north = 1;
+          c_square.west = 1;
+        }
+        else if (dir == 1){
+          c_square.east = 1;
+          c_square.north = 1;
+        }
+        else if (dir == 2){
+          c_square.south = 1;
+          c_square.east = 1;
+        }
+        else{
+          c_square.west = 1;
+          c_square.south = 1;
+        }
+      }
       dir++;      
       if(dir == 4) dir = 0;
     } 
     else if(frontSensor() == 1) 
     {
       turnLeftSweep();
-      if(dir == 0) y++;
-      if(dir == 1) x++;
-      if(dir == 2) y--;
-      if(dir == 3) x--;
       if(dir == 0){
         c_square.east = 1;
         c_square.north = 1;
@@ -127,15 +155,19 @@ void loop() {
     else
     {
       PIDControl();
-      if(dir == 0) y++;
-      if(dir == 1) x++;
-      if(dir == 2) y--;
-      if(dir == 3) x--;
       if(dir == 0) c_square.east = 1;
       else if (dir == 1) c_square.south = 1;
       else if (dir == 2) c_square.west = 1;
       else c_square.north = 1;
+      int s_time = millis();
+      while (s_time + 100 > millis())
+        PIDControl();
     }
+
+    node[0] = y*9 + x;
+    node[1] = c_square.c;//0x50;
+    stopServos();
+    while(!transmit_radio(node,2)){}
     
     Serial.print(" North:");
     Serial.print(c_square.north);
@@ -156,9 +188,92 @@ void loop() {
   }
 }
 
+void setup_radio(void) {
+  radio.begin();
+
+  // optionally, increase the delay between retries & # of retries
+  radio.setRetries(15,15);
+  radio.setAutoAck(true);
+  // set the channel
+  radio.setChannel(0x50);
+  // set the power
+  // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  radio.setPALevel(RF24_PA_MIN);
+  //RF24_250KBPS for 250kbs, RF24_1MBPS for 1Mbps, or RF24_2MBPS for 2Mbps
+  radio.setDataRate(RF24_250KBPS);
+
+  // optionally, reduce the payload size.  seems to
+  // improve reliability
+  radio.setPayloadSize(2);
+
+  // Open pipes to other nodes for communication
+  // This simple sketch opens two pipes for these two nodes to communicate
+  // back and forth.
+  // Open 'our' pipe for writing
+  // Open the 'other' pipe for reading, in position #1 (we can have up to 5 pipes open for reading)
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+
+  // Start listening
+  radio.startListening();
+
+  // Dump the configuration of the rf unit for debugging
+  //radio.printDetails();
+}
+
+bool transmit_radio(char arr[], int n) {
+  radio.stopListening();
+//  Serial.write("sending");
+//  Serial.write("\n");
+//  Serial.print((uint8_t) arr[0]);
+//  Serial.write("  ");
+//  Serial.print((uint8_t) arr[1]);
+//  Serial.write("\n");
+  bool ok = radio.write(arr, n);
+
+  if (ok){}
+//    printf("ok...");
+  else {
+//    printf("failed.\n\r");
+    return false;
+  }
+
+  // Now, continue listening
+  radio.startListening();
+
+  // Wait here until we get a response, or timeout (250ms)
+  unsigned long started_waiting_at = millis();
+  bool timeout = false;
+  while ( ! radio.available() && ! timeout )
+    if (millis() - started_waiting_at > 200 )
+      timeout = true;
+
+  // Describe the results
+  if ( timeout )
+  {
+//    printf("Failed, response timed out.\n\r");
+    return false;
+  }
+  else
+  {
+    // Grab the response, compare, and send to debugging spew
+    unsigned char ret_val[16];
+    radio.read(ret_val, n);
+
+    // Spew it
+//    Serial.write("recieved");
+//    Serial.write("\n");
+//    Serial.print((uint8_t) ret_val[0]);
+//    Serial.write("  ");
+//    Serial.print((uint8_t) ret_val[1]);
+//    Serial.write("\n");
+    return true;
+  }
+}
+
 int frontSensor()
 {
-    sensorValueFront = analogRead(sensorPinFront);
+  sensorValueFront = analogRead(sensorPinFront);
   if(sensorValueFront<300) return 0;
   else return 1;
 }
@@ -219,7 +334,11 @@ int readIR(){
     ADMUX = adcmux_temp; // use adc0 //required for fft!
     DIDR0 = didr0_temp; // turn off the digital input for adc0
     //sei();
-    //Serial.println(fft_log_out[39]);
+    Serial.print(fft_log_out[40]);
+    Serial.print(" ");
+    Serial.print(fft_log_out[41]);
+    Serial.print(" ");
+    Serial.println(fft_log_out[42]);
     if(fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120)
     {
       return 1;
