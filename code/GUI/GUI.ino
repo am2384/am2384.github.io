@@ -50,6 +50,7 @@ void setup() {
   radio.openReadingPipe(1,pipes[0]);
   
   radio.startListening();
+  Serial.println("0,2,north=true,east=true,west=true");
   
 }
 
@@ -63,6 +64,9 @@ byte * readRadio(){
         // Fetch the payload, and see if this was the last one.
         done = radio.read( &payload, sizeof(unsigned short) );
 
+        //Serial.print((uint8_t) payload[0]);
+        //Serial.write("  ");
+        //Serial.print((uint8_t) payload[1]);
         // Spew it
         //printf("Got payload %lu...",got_time);
 
@@ -103,14 +107,27 @@ void loop() {
 //  delay(1000);
   readRadio();
   if(newData){
-    int coord = payload[0];
-    byte info = payload[2];
-    //Serial.write(coord);
-    //Serial.write(info,1);
-    int x = coord%9;
-    int y = coord/9;
-    Serial.write("\n");
+    uint8_t coord = payload[0];
+    uint8_t info = payload[1];
+    //Serial.println(coord);
+    //Serial.println(info);
+    String x = String(coord%9);
+    
+    String y = String(coord/9);
+    Serial.print(y+",");
+    Serial.print(x);
+
+    int north = (info&0x80);
+    if(north) Serial.print(",north=true");
+    int south = (info&0x40);
+    if(south) Serial.print(",south=true");
+    int east = (info&0x20);
+    if(east) Serial.print(",east=true");
+    int west = (info&0x10);
+    if(west) Serial.print(",west=true");
+    Serial.print("\n");
     newData = false;
+    
   }
 }
 

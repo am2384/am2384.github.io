@@ -67,15 +67,15 @@ void setup() {
 }
 
 void loop() {
-//  if(start == 0)
-//  {
-//    while(audio() == 0)
-//    {
-//      Serial.println("No tone");
-//    }
-//    start = 1;
-//  }
-//  
+  if(start == 0)
+  {
+    while(audio() == 0)
+    {
+      Serial.println("No tone");
+    }
+    start = 1;
+  }
+  
   if(readIR()==1)
   {
     //Serial.println("IR Hat Detected");
@@ -83,9 +83,9 @@ void loop() {
   } 
   else
   {
-    Serial.println("");
+    //Serial.println("");
   }
-
+  Serial.println(analogRead(sensorPinRight));
   if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
@@ -101,6 +101,17 @@ void loop() {
     c_square.south = 0;
     c_square.west = 0;
     c_square.north = 0;
+    if(x == 0 && y == 1){
+      c_square.east = 1;
+      c_square.south = 1;
+      c_square.west = 1;
+      node[0] = y*9 + x;
+      node[1] = c_square.c;//0x50;
+      stopServos();
+      while(!transmit_radio(node,2)){}
+      make180turn();
+      while(1){} 
+    }
     if(rightSensor() == 0)
     { 
     turnRightSweep();
@@ -281,7 +292,7 @@ int frontSensor()
 int rightSensor()
 {
   sensorValueRight = analogRead(sensorPinRight);
-  if(sensorValueRight<300) return 0;
+  if(sensorValueRight<400) return 0;
   else return 1;
 }
 
