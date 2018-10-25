@@ -117,14 +117,14 @@ void loop() {
     }
     if(rightSensor() == 0)
     { 
-    
+      
       if(dir == 0) c_square.east = 0;
       else if (dir == 1) c_square.south = 0;
       else if (dir == 2) c_square.west = 0;
       else c_square.north = 0;
       if(frontSensor() == 1)
       {
-        if(dir == 0){
+        if(dir == 0){ // it is facing east now
           c_square.north = 1;
           c_square.west = 1;
         }
@@ -148,8 +148,8 @@ void loop() {
     else if(frontSensor() == 1) // and right sensor is 1
     {
       turnLeftSweep();
-      if(dir == 0){
-        c_square.east = 1;
+      if(dir == 0){ // it is facing west now, but the front sensor value is 
+        c_square.east = 1; // from when it was facing north
         c_square.north = 1;
       }
       else if (dir == 1){
