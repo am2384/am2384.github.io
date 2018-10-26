@@ -31,7 +31,7 @@ input 		     [1:0]		KEY;
 
 ///// PIXEL DATA /////
 reg [7:0]	pixel_data_RGB332 = BLUE;
-
+//The adapter takes pixel data in RGB 332 format (8 bits - 3 red, 3 green, 2 blue).
 ///// READ/WRITE ADDRESS /////
 reg [14:0] X_ADDR;
 reg [14:0] Y_ADDR;
@@ -58,6 +58,12 @@ wire [8:0] RESULT;
 
 /* WRITE ENABLE */
 reg W_EN;
+wire c0_sig;
+wire c1_sig;
+wire c2_sig;
+
+assign GPIO_0_D[33] = c0_sig; // Camera team needs the clock at pin number 40
+
 
  
 
@@ -88,7 +94,7 @@ Dual_Port_RAM_M9K mem(
 ///////* VGA Module *///////
 VGA_DRIVER driver (
 	.RESET(VGA_RESET),
-	.CLOCK(c1_sig ),
+	.CLOCK(c1_sig ), // 25 MHz
 	.PIXEL_COLOR_IN(VGA_READ_MEM_EN ? MEM_OUTPUT : RED),
 	.PIXEL_X(VGA_PIXEL_X),
 	.PIXEL_Y(VGA_PIXEL_Y),
@@ -119,7 +125,6 @@ always @ (VGA_PIXEL_X, VGA_PIXEL_Y) begin
 		end
 end
 
-reg finish;
 ///////* Update Write Address *///////
 always @ (posedge CLOCK_50) begin
 		
