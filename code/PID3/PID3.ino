@@ -67,24 +67,24 @@ void setup() {
 }
 
 void loop() {
-//  if(start == 0)
-//  {
-//    while(audio() == 0)
-//    {
-//      Serial.println("No tone");
-//    }
-//    start = 1;
-//  }
-//  
-  if(readIR()==1)
+  if(start == 0)
   {
-    //Serial.println("IR Hat Detected");
-    //make180turn();
-  } 
-  else
-  {
-    Serial.println("");
+    while(audio() == 0)
+    {
+      Serial.println("No tone");
+    }
+    start = 1;
   }
+  
+//  if(readIR()==1)
+//  {
+//    Serial.println("IR Hat Detected");
+//    make180turn();
+//  } 
+//  else
+//  {
+//    Serial.println("");
+//  }
 
   if (!checkIntersection()) // we are not at an intersection
   {
