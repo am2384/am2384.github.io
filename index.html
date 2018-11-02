@@ -190,7 +190,7 @@
                                   <i class="fa fa-plus fa-3x"></i>
                               </div>
                           </div>
-                          <img class="img-fluid" src="img/portfolio/06-thumbnail.jpg" alt="">
+                          <img class="img-fluid" src="img/portfolio/lab3thumbnail.jpg" alt="">
                       </a>
                       <div class="portfolio-caption">
                           <h4>Lab 3</h4>
@@ -957,15 +957,108 @@ void loop() {
                           <div class="col-lg-8 mx-auto">
                               <div class="modal-body">
                                   <!-- Project Details Go Here -->
-                                  <h2 class="text-uppercase">Project Name</h2>
-                                  <p class="item-intro text-muted">Lorem ipsum dolor sit amet consectetur.</p>
-                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/06-full.jpg" alt="">
-                                  <p>Use this area to describe your project. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Est blanditiis dolorem culpa incidunt minus dignissimos deserunt repellat aperiam quasi sunt officia expedita beatae cupiditate, maiores repudiandae, nostrum, reiciendis facere nemo!</p>
-                                  <ul class="list-inline">
-                                      <li>Date: January 2017</li>
-                                      <li>Client: Window</li>
-                                      <li>Category: Photography</li>
-                                  </ul>
+                                  <h2 class="text-uppercase">Lab 3</h2>
+                                  <p class="item-intro text-muted"></p>
+                                  <h3>Introduction </h3>
+                                  <p align="left">This lab had 2 goals: 1) to implement radio communication between our rover and a base station and 2) to integrate all developed components onto one functional rover. For radio communication, the rover would communicate maze information to the base station, which would then be displayed on a GUI. For integration, this includes components such as IR hat detection, wall detection, start signal detection, and radio communication.</p>
+                                  <h3>Part 1: Radio</h3>
+                                  <p align="left">The first thing the radio team did was install the GUI so we could make sure it worked on our laptops. We downloaded the files from the git repository, and then installed the required Python packages. As you can see below, we were able to successfully run the test script on our laptop.</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/GUItest.jpg" alt="">
+                                  <p align="left">Next, we tested the radio functionality. We connected 2 Nordic nRF24L01+ transceivers to the Arduinos using the breakout board provided. We downloaded the RF24 Arduino library and used the GettingStarted sketch. After making the edits mentioned in the lab, we confirmed that the radios were successfully communicating with one another. We then tested the distance of the radio, and confirmed they worked 15 ft apart. They even worked up until 50 ft in the hallways of Phillips Hall. After testing, we copied the GettingStarted code into to files and stripped each one down until they only contained the portions necessary for either the rover or base station.</p>
+                                  <p align="left">For rover transmission, we started by determining the size of the data packet needed to be sent. Based on the size of the data needed for saving a space in the maze and the minimum size needed for specifying a location in a 9x9 grid we established that we would need 2 bytes of data. Using this, we modified the setup code to only transmit and receive 2 bytes of data. According to the getting started script reducing the size of the payload increases the reliability of the radio. We tested this setup first by hand-modifying the messages for the GUI tester into radio messages and sent them at 1 second increments. Each transmission was packed into a blocking while loop to guarantee that the transmission succeeded.</p>
+                                  <p align="left">The following were the comments to specify the bits used during transmission. The items are ordered from MSB to LSB:</p>
+                                  <pre><code>
+  //byte 1
+  //8bits of position
+
+  //byte 2
+  //1bit north wall
+  //1bit south wall
+  //1bit east wall
+  //1bit west wall
+  //1bit robot
+  //2bits treasure shape //cic,tri,sq,none
+  //1bit treasure color //red,blue
+                                  </code></pre>
+                                  <p align="left">For the base station, we know the packet structure being sent from the rover. Therefore, we just needed to interpret the coordinates, and wall information from the data packet. This was done with some simple calculations and bit masking. </p>
+                                  <pre><code>
+  uint8_t coord = payload[0];
+  uint8_t info = payload[1];
+  String x = String(coord%9);
+  String y = String(coord/9);
+  Serial.print(y+",");
+  Serial.print(x);
+
+  int north = (info&0x80);
+  if(north) Serial.print(",north=true");
+  int south = (info&0x40);
+  if(south) Serial.print(",south=true");
+  int east = (info&0x20);
+  if(east) Serial.print(",east=true");
+  int west = (info&0x10);
+  if(west) Serial.print(",west=true");
+  Serial.print("\n");
+                                  </code></pre>
+                                  <p align="left">To demonstrate robust rover to base station communication, we have the GUI moving the rover indicator in the reverse direction from the example.</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/GUItest2.gif" alt="" style="width:50vw;">
+
+                                  <h3>Data Structure</h3>
+
+                                  <p align="left">The maze’s data structure is a 2D array that specifies walls, and treasures. It conforms to the format of the transmission and is intended to make assigning bits easy to read and code with. We utilize a C element called a union to access a byte as two different data types. One of these data types is a struct with bitwise access. Although this method of accessing data is platform dependent we’ll be sticking with the Arduino Uno so this isn’t a major concern.</p>
+                                  <pre><code>
+typedef union {
+ unsigned c: 8;
+ struct {
+   unsigned t_color: 1;
+   unsigned t_shape: 2;
+   unsigned robot: 1;
+   unsigned west: 1;
+   unsigned east: 1;
+   unsigned south: 1;
+   unsigned north: 1;
+ };
+} square_data_t;
+
+square_data_t maze_data[9][9];
+
+                                  </code></pre>
+                                  <p align="left">Each item may be accessed as if reading from a structure or a union and data from the maze may be accessed via the 2D array. For example, to set position (3,4) to have a north wall is as easy as: </p>
+                                  <pre><code>
+maze_data[3][4].north = 1;
+                                  </code></pre>
+                                  <p align="left">The intention is to add another array which will contain a bit field that specifies which spaces have been visited but it was not necessary to add yet for this lab.</p>
+
+                                  <h3>Part 2: Integration</h3>
+                                  <p align="left">Integration was quite a challenge because there were many components. We started by including the code for 660Hz audio detection, which acted as a cue to start the robot. We placed the code, a while loop, at the end of the setup() function body since it only needed to be run once. The program stayed in the while loop until we detected a peak in the 20th bin, corresponding to a value > 80. </p>
+                                  <p align="left">We also incorporated a second wall sensor. Now, we use one sensor to detect walls to the right of the robot, and one sensor to detect walls to the front of the robot. The algorithm checks the status of both sensors at each intersection. If there is no wall to the right, the robot will turn right. If there is a wall to the right and a wall to the front, it turns left. If there is a wall to the right and no wall to the front, it goes straight. We also turn on the LED when turning to show what the robot is thinking.</p>
+                                  <pre><code>if(rightSensor() == 0)
+    {
+      digitalWrite(7, HIGH);
+      turnRightSweep();
+      digitalWrite(7, LOW);
+
+    } else if(frontSensor() == 1)
+    {
+      digitalWrite(7, HIGH);
+      turnLeftSweep();
+      digitalWrite(7, LOW);
+    }
+
+    else
+    {
+      PIDControl();
+    }
+
+                                  </code></pre>
+                                  <p align="left">We also designed an algorithm to track the location of the rover. The algorithm works on the following principles: 1)the update to location always takes place when an intersection is encountered and 2) the update to location depends on the direction of travel at the intersection before turning. We implemented a pseudo finite state machine code containing 4 states. Each state represented the direction of travel of the robot, stored in the variable dir. The transitions between states were triggered by the detection of intersection. The position of the robot was represented by (x,y) coordinates. The position of the robot was initialized to have value (2,0) and the direction the robot faced was initialized to dir=2 (South). </p>
+                                  <p align="left">Finally, we combined our finite state machine logic and our knowledge of the maze to update the maze data about walls on all four sides. In future, we plan to include a left wall sensor which will make our robot capable of autonomously detecting and updating information about walls without specific knowledge of the maze. The direction conventions and the working of our finite state logic are shown below:</p>
+
+                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/lab3diagram.jpg" alt="">
+                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/lab3diagram2.jpg" alt="">
+                                  <p align="left">In future, we plan to integrate a left wall sensor which would simplify our state transitions as well as make it possible for our robot to navigate a more general maze structure. </p>
+                                  <h3>Putting it all together</h3>
+                                  <p align="left">After verifying that the robot can produce correct coordinate and maze data, we integrate the navigation algorithm with all the sensors. In the video below, you will see our rover successfully accomplish the goals set for lab 3. The rover starts on a 660Hz tone, and begins exploring the maze while transmitting its coordinates to the base station. The rover uses right-wall following to navigate the maze, and we see the GUI update properly as the rover travels. At the other end of the maze, it encounters an IR hat and turns 180 degrees to avoid other rovers.</p>
+                                  <iframe width="560" height="315" src="https://www.youtube.com/embed/yjCHxKzrZv4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                                   <button class="btn btn-primary" data-dismiss="modal" type="button">
                                       <i class="fa fa-times"></i>
                                       Close Project

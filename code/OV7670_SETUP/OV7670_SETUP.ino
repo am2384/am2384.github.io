@@ -1,7 +1,5 @@
 #include <Wire.h>
-
-#define OV7670_I2C_ADDRESS 0x42 /*TODO: write this in hex (eg. 0xAB) */
-
+#define OV7670_I2C_ADDRESS 0x21 
 
 ///////// Main Program //////////////
 void setup() {
@@ -12,7 +10,7 @@ void setup() {
   read_key_registers();
   
   delay(100);
-  /*
+  
   // TODO: WRITE KEY REGISTERS
   Serial.println(OV7670_write_register(0x12,0x80));   // COM 7 bit 7 - set to 1 to reset
   Serial.println(OV7670_write_register(0x0C,0x08));   // COM 3 bit 3 - set to 1 to enable scaling
@@ -21,7 +19,6 @@ void setup() {
   OV7670_write_register(0x40,0xD0); // COM 15- bit 5:4 -> 01
   //OV7670_write_register(,);  // MVFP bits 5 (1 = mirror) and bit 4 (1 = vflip)
   //OV7670_write_register(,);   // COM 9 bit 6:4- automatic gain ceiling
-  */
   
   read_key_registers();
   set_color_matrix();
@@ -55,7 +52,6 @@ byte read_register_value(int register_address){
 
 String OV7670_write(int start, const byte *pData, int size){
     int n,error;
-    Serial.println("writing");
     Wire.beginTransmission(OV7670_I2C_ADDRESS);
     n = Wire.write(start);
     if(n != 1){
@@ -71,11 +67,10 @@ String OV7670_write(int start, const byte *pData, int size){
     if(error != 0){
       return String(error);
     }
-    Serial.println("no errors");
     return "no errors :)";
  }
 
-String OV7670_write_register(int reg_address, byte data){
+  String OV7670_write_register(int reg_address, byte data){
   return OV7670_write(reg_address, &data, 1);
  }
 
