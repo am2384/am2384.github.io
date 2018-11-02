@@ -51,23 +51,24 @@ assign blue = PIXEL_IN[7]==0 && PIXEL_IN[2]==1;
 
 always @(posedge CLK) begin
 	if(~VGA_VSYNC_NEG) begin
-		
+		RESULT[0] = (data1[90]== 2'b01);
+		RESULT[1] = (data1[90]== 2'b11);
 	end
 	
 end
 
 always @(posedge CLK) begin
 	if(VGA_PIXEL_Y == 100) begin 
-		if(red) data[VGA_PIXEL_X] = 2'b01;
-		else if(blue) data[VGA_PIXEL_X] = 2'b00;
-		else if(white) data[VGA_PIXEL_X] = 2'b10;
-		else data[VGA_PIXEL_X] = 2'b11;
+		if(red) data1[VGA_PIXEL_X] = 2'b01;
+		else if(blue) data1[VGA_PIXEL_X] = 2'b00;
+		else if(white) data1[VGA_PIXEL_X] = 2'b10;
+		else data1[VGA_PIXEL_X] = 2'b11;
 	end
 		if(VGA_PIXEL_Y == 120) begin 
-		if(red) data[VGA_PIXEL_X] = 2'b01;
-		else if(blue) data[VGA_PIXEL_X] = 2'b00;
-		else if(white) data[VGA_PIXEL_X] = 2'b10;
-		else data[VGA_PIXEL_X] = 2'b11;
+		if(red) data2[VGA_PIXEL_X] = 2'b01;
+		else if(blue) data2[VGA_PIXEL_X] = 2'b00;
+		else if(white) data2[VGA_PIXEL_X] = 2'b10;
+		else data2[VGA_PIXEL_X] = 2'b11;  
 	end
 	
 	// 
