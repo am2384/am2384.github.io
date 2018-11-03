@@ -3,9 +3,7 @@
 `define NUM_BARS 3
 `define BAR_HEIGHT 48
 
-localparam R = 2'b01;
-localparam B = 2'b00;
-localparam W = 2'b10;
+
 
 module IMAGE_PROCESSOR (
 	PIXEL_IN,
@@ -15,6 +13,10 @@ module IMAGE_PROCESSOR (
 	VGA_VSYNC_NEG,
 	RESULT
 );
+	
+localparam R = 2'b01;
+localparam B = 2'b00;
+localparam W = 2'b10;
 
 // C0 = (87, 71),
 //C1 = (43, 35), 
@@ -86,7 +88,7 @@ always @(posedge CLK) begin
 			else if(white) c1 = 2'b10;
 			else c1 = 2'b11;
 		end
-		else if(VGA_PIXEL_X== 131)  // c2
+		else if(VGA_PIXEL_X== 131) begin // c2
 			if(red) c2 = 2'b01;
 			else if(blue) c2 = 2'b00;
 			else if(white) c2 = 2'b10;
@@ -100,7 +102,7 @@ always @(posedge CLK) begin
 			else if(white) c3 = 2'b10;
 			else c3 = 2'b11;
 		end
-		else if(VGA_PIXEL_X == 131)  // c4
+		else if(VGA_PIXEL_X == 131) begin // c4
 			if(red) c4 = 2'b01;
 			else if(blue) c4 = 2'b00;
 			else if(white) c4 = 2'b10;
