@@ -15,10 +15,10 @@ void setup() {
   Serial.println(OV7670_write_register(0x12,0x80));   // COM 7 bit 7 - set to 1 to reset
   Serial.println(OV7670_write_register(0x0C,0x08));   // COM 3 bit 3 - set to 1 to enable scaling
   Serial.println(OV7670_write_register(0x11,0x40));   // CLK RC bit 6 - set to 1 for external clock
-  OV7670_write_register(0x12,0x06);//0x04 for no color bar   // COM 7 bit 2- RGB format (bit 2- set to 1, bit 0- set to 0)
   OV7670_write_register(0x40,0xD0); // COM 15- bit 5:4 -> 01
-  //OV7670_write_register(,);  // MVFP bits 5 (1 = mirror) and bit 4 (1 = vflip)
-  //OV7670_write_register(,);   // COM 9 bit 6:4- automatic gain ceiling
+  OV7670_write_register(0x12,0x0E);//0x0E for color bar //0x0C for no color bar   // COM 7 bit 2- RGB format (bit 2- set to 1, bit 0- set to 0)
+  //OV7670_write_register(0x1E,);  // MVFP bits 5 (1 = mirror) and bit 4 (1 = vflip)
+  //OV7670_write_register(0x14,);   // COM 9 bit 6:4- automatic gain ceiling
   
   read_key_registers();
   set_color_matrix();
