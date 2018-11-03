@@ -60,7 +60,7 @@ assign GPIO_0_D[5] = VGA_VSYNC_NEG;
 assign VGA_RESET = ~KEY[0];
 
 ///// I/O for Img Proc /////
-wire [8:0] RESULT;
+wire [3:0] RESULT;
 
 /* WRITE ENABLE */
 reg W_EN;
@@ -68,19 +68,17 @@ wire c0_sig;
 wire c1_sig;
 wire c2_sig;
 
-//////////////////////// CAMERA INPUTS ////////////////////////////////
+// ALL CONNECTIONS HERE
 wire [7:0] camera; 
 wire PCLK, HREF, VSYNC;
+
 assign camera = {GPIO_1_D[33],GPIO_1_D[32],GPIO_1_D[31],GPIO_1_D[30],GPIO_1_D[29],GPIO_1_D[28],GPIO_1_D[27],GPIO_1_D[26]};
 assign GPIO_0_D[0] = c0_sig; // Camera team needs the clock at pin number 2 on bank 1 
 assign PCLK = GPIO_1_D[23];
 assign HREF = GPIO_1_D[24];
 assign VSYNC = GPIO_1_D[25];
 
-// assign camera = CAMERA_PIXEL_INPUT (will assign GPIO Pins later)
 
-
-//////////////////////////////////////////////////////////////////////////
 
 ///////* CREATE ANY LOCAL WIRES YOU NEED FOR YOUR PLL *///////
 
@@ -125,7 +123,7 @@ IMAGE_PROCESSOR proc(
 	.VGA_PIXEL_X(VGA_PIXEL_X),
 	.VGA_PIXEL_Y(VGA_PIXEL_Y),
 	.VGA_VSYNC_NEG(VGA_VSYNC_NEG),
-	.RESULT(RESULT)
+	.RESULT({GPIO_0_D[14],GPIO_0_D[12],GPIO_0_D[10],GPIO_0_D[8]})
 );
 
 

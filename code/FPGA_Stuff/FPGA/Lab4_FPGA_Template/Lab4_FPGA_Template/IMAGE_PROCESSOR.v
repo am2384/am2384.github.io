@@ -34,7 +34,7 @@ input [9:0] VGA_PIXEL_X;
 input [9:0] VGA_PIXEL_Y;
 input			VGA_VSYNC_NEG;
 
-output [8:0] RESULT;
+output [3:0] RESULT;
 
 wire white;
 wire red;
@@ -57,8 +57,8 @@ reg [1:0] c4;
 // VGA_PIXEL_Y varies from 0 to 143 
 
 assign white = (PIXEL_IN[7]+PIXEL_IN[6]+PIXEL_IN[5]+PIXEL_IN[4]+PIXEL_IN[3]+PIXEL_IN[2]+PIXEL_IN[1]+PIXEL_IN[0]) >= 6; // mostly white. 
-assign red =  PIXEL_IN[7]==1 && PIXEL_IN[2]==0;
-assign blue = PIXEL_IN[7]==0 && PIXEL_IN[2]==1;
+assign red =  (PIXEL_IN[7]==1 || (PIXEL_IN[6]==1 && PIXEL_IN[5]==1) ) && PIXEL_IN[2]==0;
+assign blue = PIXEL_IN[7]==0 && ((PIXEL_IN[2]==1) || (PIXEL_IN[1]==1 && PIXEL_IN[0]==1) );
 
 always @(posedge CLK) begin
 	if(~VGA_VSYNC_NEG) begin
@@ -126,9 +126,5 @@ always @(posedge CLK) begin
 	
 	
 end
-
-
-
-
 
 endmodule
