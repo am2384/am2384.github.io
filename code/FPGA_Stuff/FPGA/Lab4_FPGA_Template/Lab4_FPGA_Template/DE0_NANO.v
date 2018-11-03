@@ -72,7 +72,7 @@ wire c2_sig;
 wire [7:0] camera; 
 wire PCLK, HREF, VSYNC;
 assign camera = {GPIO_1_D[33],GPIO_1_D[32],GPIO_1_D[31],GPIO_1_D[30],GPIO_1_D[29],GPIO_1_D[28],GPIO_1_D[27],GPIO_1_D[26]};
-assign GPIO_0_D[0] = c0_sig; // Camera team needs the clock at pin numer 2 on bank 1 
+assign GPIO_0_D[0] = c0_sig; // Camera team needs the clock at pin number 2 on bank 1 
 assign PCLK = GPIO_1_D[23];
 assign HREF = GPIO_1_D[24];
 assign VSYNC = GPIO_1_D[25];
@@ -189,35 +189,30 @@ wire start_frame;
 
 assign start_frame = (prev_VSYNC==1) && (VSYNC==0);
 
-always @ (posedge PCLK) begin // replace with PCLK later  
-	
+always @ (posedge PCLK) begin 
 	
 		prev_VSYNC = VSYNC;
 		if(start_frame) WRITE_ADDRESS = 0;
-		
-		//RGB565  -> RGB 332
-
 		
 		if(~toggle) begin
 			pixel_data_RGB332[7] = camera[7]; // RED
 			pixel_data_RGB332[6] = camera[6]; // RED
 			pixel_data_RGB332[5] = camera[5]; // RED
-			pixel_data_RGB332[4] = camera[2]; // green
+			pixel_data_RGB332[4] = camera[2]; // GREEN
 			pixel_data_RGB332[3] = camera[1]; // GREEN
-			pixel_data_RGB332[2] = camera[0]; // GREEN
-			pixel_data_RGB332[1] = 1'b0; // GREEN
-			pixel_data_RGB332[0] = 1'b0; // GREEN
-			
+			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // available next clock cycle
+			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
+			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
 		end
 		else begin
-			pixel_data_RGB332[1] = camera[4]; // blue 
-			pixel_data_RGB332[0] = camera[3]; // blue 
-			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // RED
-			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // RED
-			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // RED
-			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // green
-			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // GREEN
-			pixel_data_RGB332[2] = pixel_data_RGB332[2];
+			pixel_data_RGB332[2] = camera[4]; // BLUE 
+			pixel_data_RGB332[1] = camera[3]; // BLUE
+			pixel_data_RGB332[0] = camera[2]; // BLUE
+			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
+			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
+			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
+			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
+			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
 		end
 
 		W_EN = toggle;
@@ -228,10 +223,7 @@ always @ (posedge PCLK) begin // replace with PCLK later
 		end
 		else begin
 			WRITE_ADDRESS = WRITE_ADDRESS;
-		end
-		
-		
-		
+		end	
 end
 
 
