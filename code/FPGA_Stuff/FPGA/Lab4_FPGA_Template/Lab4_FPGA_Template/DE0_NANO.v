@@ -36,7 +36,7 @@ input 		    [33:20]		GPIO_1_D;
 input 		     [1:0]		KEY;
 
 ///// PIXEL DATA /////
-reg [7:0]	pixel_data_RGB332 = WHITE;
+reg [7:0]	pixel_data_RGB332;
 //The adapter takes pixel data in RGB 332 format (8 bits - 3 red, 3 green, 2 blue).
 ///// READ/WRITE ADDRESS /////
 reg [14:0] X_ADDR;
@@ -138,42 +138,43 @@ always @ (VGA_PIXEL_X, VGA_PIXEL_Y) begin
 		end
 end
 
+//reg [7:0] fake_camara;
 ///////* Update Write Address *///////
-//always @ (posedge c2_sig) begin
+//always @ (posedge PCLK) begin
 //		
-//		W_EN = 1;
-//		
-//		if(WRITE_ADDRESS < 144 * 176) begin
-//			WRITE_ADDRESS <= WRITE_ADDRESS + 1;
-//		end
-//		else begin
-//			WRITE_ADDRESS <= WRITE_ADDRESS;
-//		end
+//		//W_EN = 1;
+////		
+////		if(WRITE_ADDRESS < 144 * 176) begin
+////			WRITE_ADDRESS <= WRITE_ADDRESS + 1;
+////		end
+////		else begin
+////			WRITE_ADDRESS <= WRITE_ADDRESS;
+////		end
 //		
 //		
 //		if(WRITE_ADDRESS % 176 < 20) begin
-//			pixel_data_RGB332 = WHITE;
+//			fake_camara = WHITE;
 //		end
 //		else if(WRITE_ADDRESS % 176 < 40) begin
-//			pixel_data_RGB332 = LIGHTBLUE;
+//			fake_camara = LIGHTBLUE;
 //		end
 //		else if(WRITE_ADDRESS % 176 < 60) begin
-//			pixel_data_RGB332 = YELLOW;
+//			fake_camara = YELLOW;
 //		end
 //		else if (WRITE_ADDRESS % 176 < 80) begin
-//			pixel_data_RGB332 = GREEN;
+//			fake_camara = GREEN;
 //		end
 //		else if (WRITE_ADDRESS % 176 < 100) begin
-//			pixel_data_RGB332 = PURPLE;
+//			fake_camara = PURPLE;
 //		end
 //		else if (WRITE_ADDRESS % 176 < 120) begin
-//			pixel_data_RGB332 = BLUE;
+//			fake_camara = BLUE;
 //		end
 //		else if (WRITE_ADDRESS % 176 < 140) begin
-//			pixel_data_RGB332 = BROWN;
+//			fake_camara = BROWN;
 //		end
 //		else begin
-//			pixel_data_RGB332 = BLACK;
+//			fake_camara = BLACK;
 //		end 
 //		
 //end
@@ -181,16 +182,16 @@ end
 
 // input to pixel data
 
+//wire start_toggle;
+reg prev_HREF;
+wire res;
 reg toggle;
-reg prev_VSYNC;
-wire start_frame;
-
-assign start_frame = (prev_VSYNC==1) && (VSYNC==0);
-
+assign res = prev_HREF==1 && HREF==0;
+reg [14:0] row_counter;
+reg [14:0] col_counter;
 always @ (posedge PCLK) begin 
 	
-		prev_VSYNC = VSYNC;
-		if(start_frame) WRITE_ADDRESS = 0;
+		
 		
 		if(~toggle) begin
 			pixel_data_RGB332[7] = camera[7]; // RED
@@ -198,30 +199,64 @@ always @ (posedge PCLK) begin
 			pixel_data_RGB332[5] = camera[5]; // RED
 			pixel_data_RGB332[4] = camera[2]; // GREEN
 			pixel_data_RGB332[3] = camera[1]; // GREEN
-			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // available next clock cycle
+			pixel_data_RGB332[2] = camera[0]; // GREEN
 			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
 			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
 		end
 		else begin
-			pixel_data_RGB332[2] = camera[4]; // BLUE 
-			pixel_data_RGB332[1] = camera[3]; // BLUE
-			pixel_data_RGB332[0] = camera[2]; // BLUE
+			pixel_data_RGB332[1] = camera[4]; // BLUE 
+			pixel_data_RGB332[0] = camera[3]; // BLUE
+			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // BLUE
 			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
 			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
 			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
 			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
 			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
 		end
-
+		
+		// toggle  
+		// ~ toggle
+      // ~toggle
+		
+		// ~toggle  
+		// toggle
+      // toggle
+		// 
+		
+		
+		
 		W_EN = toggle;
 		
-		if(toggle && HREF) begin
-			WRITE_ADDRESS = WRITE_ADDRESS +1;
-			toggle = ~toggle;
+		if(HREF) toggle = ~toggle;  
+		else toggle =0;
+	
+	// 0 -> 1 first
+	// 
+
+		prev_HREF = HREF; 
+	
+		if(VSYNC) begin 
+			WRITE_ADDRESS = 0;
+		   row_counter = 0;
+		end
+		else if(toggle && HREF) begin // correct!!!
+			if (col_counter == 175) col_counter = col_counter;
+		   else col_counter = col_counter + 1;   
+			WRITE_ADDRESS = row_counter * 176 + col_counter;
+		end
+		else if(res) begin // negative edge of HREF
+		   col_counter = 0;
+			if (row_counter == 143) row_counter = row_counter;
+			else row_counter = row_counter + 1;
 		end
 		else begin
 			WRITE_ADDRESS = WRITE_ADDRESS;
-		end	
+			col_counter = col_counter;
+			row_counter = row_counter;
+		end
+      
+		
+			
 end
 
 
