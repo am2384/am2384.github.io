@@ -192,7 +192,6 @@ reg [14:0] col_counter;
 always @ (posedge PCLK) begin 
 	
 		
-		
 		if(~toggle) begin
 			pixel_data_RGB332[7] = camera[7]; // RED
 			pixel_data_RGB332[6] = camera[6]; // RED
@@ -230,16 +229,25 @@ always @ (posedge PCLK) begin
 		if(HREF) toggle = ~toggle;  
 		else toggle =0;
 	
-	// 0 -> 1 first
-	// 
-
+	// Timing /////////////////////
+	
+	// first  CC: HREF = 1, toggle = 0->1 , W_EN = 0->0, first byte read,  row_counter=0, col_counter = 0->0
+	// second CC: HREF = 1, toggle = 1->0 , W_EN = 0->1, second byte read, row_counter=0, col_counter = 0->0      CHECK
+	// third  CC: HREF = 1, toggle = 0->1 , W_EN = 1->0, first byte read,  row_counter=0, col_counter = 0->1
+	// fourth CC: HREF = 1, toggle = 1->0 , W_EN = 0->1, second byte read, row_counter=0, col_counter = 1->1      CHECK
+	// fifth  CC: HREF = 1, toggle = 0->1 , W_EN = 1->0, first byte read,  row_counter=0, col_counter = 1->2
+	// sixth  CC: HREF = 1, toggle = 1->0 , W_EN = 0->1, second byte read, row_counter=0, col_counter = 2->2      CHECK
+	// 7th    CC: HREF = 1, toggle = 0->1 , W_EN = 1->0, first byte read,  row_counter=0, col_counter = 2->3
+	// 8th    CC: HREF = 1, toggle = 1->0 , W_EN = 0->1, second byte read, row_counter=0, col_counter = 3->3      CHECK
+	
 		prev_HREF = HREF; 
 	
 		if(VSYNC) begin 
 			WRITE_ADDRESS = 0;
 		   row_counter = 0;
+		   col_counter = 0;
 		end
-		else if(toggle && HREF) begin // correct!!!
+		else if(W_EN && HREF) begin 
 			if (col_counter == 175) col_counter = col_counter;
 		   else col_counter = col_counter + 1;   
 			WRITE_ADDRESS = row_counter * 176 + col_counter;
