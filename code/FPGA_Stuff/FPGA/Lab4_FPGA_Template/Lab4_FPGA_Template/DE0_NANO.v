@@ -6,7 +6,8 @@ module DE0_NANO(
 	CLOCK_50,
 	GPIO_0_D,
 	GPIO_1_D,
-	KEY
+	KEY,
+	LED //SHOULD BE REMOVED
 );
 
 //=======================================================
@@ -34,7 +35,10 @@ output 		    [33:0]		GPIO_0_D;
 //////////// GPIO_0, GPIO_1 connect to GPIO Default //////////
 input 		    [33:20]		GPIO_1_D;
 input 		     [1:0]		KEY;
+output		     [7:0]		LED; 
 
+assign LED[0] = RESULT[0];
+assign LED[1] = ~RESULT[0];
 ///// PIXEL DATA /////
 reg [7:0]	pixel_data_RGB332;
 //The adapter takes pixel data in RGB 332 format (8 bits - 3 red, 3 green, 2 blue).
@@ -123,7 +127,9 @@ IMAGE_PROCESSOR proc(
 	.VGA_PIXEL_X(VGA_PIXEL_X),
 	.VGA_PIXEL_Y(VGA_PIXEL_Y),
 	.VGA_VSYNC_NEG(VGA_VSYNC_NEG),
-	.RESULT({GPIO_0_D[14],GPIO_0_D[12],GPIO_0_D[10],GPIO_0_D[8]})
+	.VGA_READ_MEM_EN(VGA_READ_MEM_EN),
+	//.RESULT({GPIO_0_D[14],GPIO_0_D[12],GPIO_0_D[10],GPIO_0_D[8]})
+	.RESULT(RESULT)
 );
 
 
@@ -139,46 +145,82 @@ always @ (VGA_PIXEL_X, VGA_PIXEL_Y) begin
 end
 
 reg [7:0] fake_camera;
-/////* Update Write Address *///////
-always @ (posedge PCLK) begin
+reg [7:0] mostly_blue;
+reg [7:0] mostly_red;
+
+`define DEBUG 1
+`ifdef DEBUG
+///* Update Write Address *///////
+always @ (posedge CLOCK_50) begin
 		
-		//W_EN = 1;
-//		
-//		if(WRITE_ADDRESS < 144 * 176) begin
-//			WRITE_ADDRESS <= WRITE_ADDRESS + 1;
-//		end
-//		else begin
-//			WRITE_ADDRESS <= WRITE_ADDRESS;
-//		end
+		W_EN = 1;
 		
-		
-		if(WRITE_ADDRESS % 176 < 20) begin
-			fake_camera = WHITE;
-		end
-		else if(WRITE_ADDRESS % 176 < 40) begin
-			fake_camera = LIGHTBLUE;
-		end
-		else if(WRITE_ADDRESS % 176 < 60) begin
-			fake_camera = YELLOW;
-		end
-		else if (WRITE_ADDRESS % 176 < 80) begin
-			fake_camera = GREEN;
-		end
-		else if (WRITE_ADDRESS % 176 < 100) begin
-			fake_camera = PURPLE;
-		end
-		else if (WRITE_ADDRESS % 176 < 120) begin
-			fake_camera = BLUE;
-		end
-		else if (WRITE_ADDRESS % 176 < 140) begin
-			fake_camera = BROWN;
+		if(WRITE_ADDRESS < 144 * 176) begin
+			WRITE_ADDRESS <= WRITE_ADDRESS + 1;
 		end
 		else begin
-			fake_camera = BLACK;
+			WRITE_ADDRESS <= WRITE_ADDRESS;
+		end
+		
+		
+//		if(WRITE_ADDRESS % 176 < 20) begin
+//			fake_camera = WHITE;
+//		end
+//		else if(WRITE_ADDRESS % 176 < 40) begin
+//			fake_camera = LIGHTBLUE;
+//		end
+//		else if(WRITE_ADDRESS % 176 < 60) begin
+//			fake_camera = YELLOW;
+//		end
+//		else if (WRITE_ADDRESS % 176 < 80) begin
+//			fake_camera = GREEN;
+//		end
+//		else if (WRITE_ADDRESS % 176 < 100) begin
+//			fake_camera = PURPLE;
+//		end
+//		else if (WRITE_ADDRESS % 176 < 120) begin
+//			fake_camera = BLUE;
+//		end
+//		else if (WRITE_ADDRESS % 176 < 140) begin
+//			fake_camera = BROWN;
+//		end
+//		else begin
+//			fake_camera = BLACK;
+//		end 
+
+		// mostly blue
+		if(WRITE_ADDRESS % 176 < 20) begin
+			mostly_blue <= WHITE;
+		end
+		else if(WRITE_ADDRESS % 176 < 40) begin
+			mostly_blue <= BLUE;
+		end
+		else if(WRITE_ADDRESS % 176 < 50) begin
+		
+			mostly_blue <= RED;
+		end
+		else begin
+			mostly_blue <= WHITE;
+		end 
+
+		// mostly blue
+		if(WRITE_ADDRESS % 176 < 20) begin
+			mostly_red <= WHITE;
+		end
+		else if(WRITE_ADDRESS % 176 < 40) begin
+			mostly_red <= RED;
+		end
+		else if(WRITE_ADDRESS % 176 < 50) begin
+			mostly_red <= BLUE;
+		end
+		else begin
+			mostly_red <= WHITE;
 		end 
 		
+		pixel_data_RGB332 = mostly_red;
+		
 end
-
+`endif
 
 // input to pixel data
 
@@ -189,44 +231,24 @@ reg toggle;
 assign res = prev_HREF==1 && HREF==0;
 reg [14:0] row_counter;
 reg [14:0] col_counter;
-
+//
+`ifndef DEBUG
 always @ (posedge PCLK) begin 
 	
 		
-//		if(~toggle) begin
-//			pixel_data_RGB332[7] = camera[7]; // RED
-//			pixel_data_RGB332[6] = camera[6]; // RED
-//			pixel_data_RGB332[5] = camera[5]; // RED
-//			pixel_data_RGB332[4] = camera[2]; // GREEN
-//			pixel_data_RGB332[3] = camera[1]; // GREEN
-//			pixel_data_RGB332[2] = camera[0]; // GREEN
-//			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
-//			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
-//		end
-//		else begin
-//			pixel_data_RGB332[1] = camera[4]; // BLUE 
-//			pixel_data_RGB332[0] = camera[3]; // BLUE
-//			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // BLUE
-//			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
-//			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
-//			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
-//			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
-//			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
-//		end
-
 		if(~toggle) begin
-			pixel_data_RGB332[7] = fake_camera[7]; // RED
-			pixel_data_RGB332[6] = fake_camera[6]; // RED
-			pixel_data_RGB332[5] = fake_camera[5]; // RED
-			pixel_data_RGB332[4] = fake_camera[2]; // GREEN
-			pixel_data_RGB332[3] = fake_camera[1]; // GREEN
-			pixel_data_RGB332[2] = fake_camera[0]; // GREEN
+			pixel_data_RGB332[7] = camera[7]; // RED
+			pixel_data_RGB332[6] = camera[6]; // RED
+			pixel_data_RGB332[5] = camera[5]; // RED
+			pixel_data_RGB332[4] = camera[2]; // GREEN
+			pixel_data_RGB332[3] = camera[1]; // GREEN
+			pixel_data_RGB332[2] = camera[0]; // GREEN
 			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
 			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
 		end
 		else begin
-			pixel_data_RGB332[1] = fake_camera[4]; // BLUE 
-			pixel_data_RGB332[0] = fake_camera[3]; // BLUE
+			pixel_data_RGB332[1] = camera[4]; // BLUE 
+			pixel_data_RGB332[0] = camera[3]; // BLUE
 			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // BLUE
 			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
 			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
@@ -234,6 +256,27 @@ always @ (posedge PCLK) begin
 			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
 			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
 		end
+
+//		if(~toggle) begin
+//			pixel_data_RGB332[7] = fake_camera[7]; // RED
+//			pixel_data_RGB332[6] = fake_camera[6]; // RED
+//			pixel_data_RGB332[5] = fake_camera[5]; // RED
+//			pixel_data_RGB332[4] = fake_camera[2]; // GREEN
+//			pixel_data_RGB332[3] = fake_camera[1]; // GREEN
+//			pixel_data_RGB332[2] = fake_camera[0]; // GREEN
+//			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
+//			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
+//		end
+//		else begin
+//			pixel_data_RGB332[1] = fake_camera[4]; // BLUE 
+//			pixel_data_RGB332[0] = fake_camera[3]; // BLUE
+//			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // BLUE
+//			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
+//			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
+//			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
+//			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
+//			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
+//		end
 		
 		// toggle  
 		// ~ toggle
@@ -288,7 +331,7 @@ always @ (posedge PCLK) begin
 		
 			
 end
-
+`endif
 
 
 	
