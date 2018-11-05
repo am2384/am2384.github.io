@@ -1,13 +1,17 @@
 `define SCREEN_WIDTH 176
 `define SCREEN_HEIGHT 144
-
+//`define DEBUG 0
 ///////* DON'T CHANGE THIS PART *///////
 module DE0_NANO(
 	CLOCK_50,
 	GPIO_0_D,
 	GPIO_1_D,
+`ifdef DEBUG
 	KEY,
 	LED //SHOULD BE REMOVED
+`else
+	KEY
+`endif
 );
 
 //=======================================================
@@ -35,10 +39,13 @@ output 		    [33:0]		GPIO_0_D;
 //////////// GPIO_0, GPIO_1 connect to GPIO Default //////////
 input 		    [33:20]		GPIO_1_D;
 input 		     [1:0]		KEY;
-output		     [7:0]		LED; 
 
+`ifdef DEBUG
+output		     [7:0]		LED; 
 assign LED[0] = RESULT[0];
 assign LED[1] = ~RESULT[0];
+`endif
+
 ///// PIXEL DATA /////
 reg [7:0]	pixel_data_RGB332;
 //The adapter takes pixel data in RGB 332 format (8 bits - 3 red, 3 green, 2 blue).
@@ -148,7 +155,6 @@ reg [7:0] fake_camera;
 reg [7:0] mostly_blue;
 reg [7:0] mostly_red;
 
-`define DEBUG 1
 `ifdef DEBUG
 ///* Update Write Address *///////
 always @ (posedge CLOCK_50) begin
@@ -231,7 +237,8 @@ reg toggle;
 assign res = prev_HREF==1 && HREF==0;
 reg [14:0] row_counter;
 reg [14:0] col_counter;
-//
+
+
 `ifndef DEBUG
 always @ (posedge PCLK) begin 
 	
