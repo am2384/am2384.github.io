@@ -63,13 +63,16 @@ reg [1:0] c4;
 //assign white = (PIXEL_IN[7]+PIXEL_IN[6]+PIXEL_IN[5]+PIXEL_IN[4]+PIXEL_IN[3]+PIXEL_IN[2]+PIXEL_IN[1]+PIXEL_IN[0]) >= 6; // mostly white. 
 //assign red =  (PIXEL_IN[7]==1 || (PIXEL_IN[6]==1 && PIXEL_IN[5]==1) ) && PIXEL_IN[2]==0;
 //assign blue = PIXEL_IN[7]==0 && ((PIXEL_IN[2]==1) || (PIXEL_IN[1]==1 && PIXEL_IN[0]==1) );
-assign red  = (PIXEL_IN[7:6] > PIXEL_IN[1:0]);
-assign blue = (PIXEL_IN[7:6] < PIXEL_IN[1:0]);
+//assign red  = (PIXEL_IN[7:6] > PIXEL_IN[1:0]);
+//assign blue = (PIXEL_IN[7:6] < PIXEL_IN[1:0]);
+assign white = PIXEL_IN[7] & PIXEL_IN[4] & PIXEL_IN[2];
+assign black = (PIXEL_IN[1] == 0) & ~ white;
+assign blue =  (PIXEL_IN[1]) & ~white;
 
 always @(posedge CLK) begin
 	if(~VGA_VSYNC_NEG) begin
 		//RESULT[0] = (c0 == 2'b01);
-		RESULT[1] = (c0 == 2'b11);
+		//RESULT[1] = (c0 == 2'b11);
 		if(c1== R && c2==R && c3==R && c4==R) RESULT[3:2]= 2'b00;
 		else if(c1== W && c2==W && c3==R && c4==R) RESULT[3:2]= 2'b01;
 		else if(c1== W && c2==W && c3==W && c4==W) RESULT[3:2]= 2'b10;
@@ -141,18 +144,23 @@ assign negege_VGA_VSYNC_NEG = prev_VGA_VSYNC_NEG & ~VGA_VSYNC_NEG;
 always @(posedge CLK) begin
 	prev_VGA_VSYNC_NEG = VGA_VSYNC_NEG;
 	
-	if(negege_VGA_VSYNC_NEG) 
+	if(negege_VGA_VSYNC_NEG) begin
 		RESULT[0] = (red_count > blue_count); // UPDATE COLOR WHEN A FRAME ENDS
-	else RESULT[0] = RESULT[0];
+		RESULT[1] = red_count + blue_count > 3/5*176 * 144; // 0 for WHITE
+	end
+	else begin
+		RESULT[0] = RESULT[0];
+		RESULT[1] = RESULT[1];
+	end
 	
 	if(~VGA_VSYNC_NEG) begin
 		red_count = 0;
 		blue_count = 0;
 	end
 	else begin
-		if (red && VGA_READ_MEM_EN) red_count = red_count + 1'b1;
+		if (blue && VGA_READ_MEM_EN) red_count = red_count + 1'b1;
 		else red_count = red_count;
-		if (blue && VGA_READ_MEM_EN) blue_count = blue_count + 1'b1;
+		if (black && VGA_READ_MEM_EN) blue_count = blue_count + 1'b1;
 		else blue_count = blue_count;
 	end
 	//RESULT[0] = red;

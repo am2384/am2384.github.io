@@ -6,7 +6,7 @@ module DE0_NANO(
 	CLOCK_50,
 	GPIO_0_D,
 	GPIO_1_D,
-`ifdef DEBUG
+`ifndef DEBUG
 	KEY,
 	LED //SHOULD BE REMOVED
 `else
@@ -40,7 +40,7 @@ output 		    [33:0]		GPIO_0_D;
 input 		    [33:20]		GPIO_1_D;
 input 		     [1:0]		KEY;
 
-`ifdef DEBUG
+`ifndef DEBUG
 output		     [7:0]		LED; 
 assign LED[0] = RESULT[0];
 assign LED[1] = ~RESULT[0];
@@ -135,8 +135,8 @@ IMAGE_PROCESSOR proc(
 	.VGA_PIXEL_Y(VGA_PIXEL_Y),
 	.VGA_VSYNC_NEG(VGA_VSYNC_NEG),
 	.VGA_READ_MEM_EN(VGA_READ_MEM_EN),
-	//.RESULT({GPIO_0_D[14],GPIO_0_D[12],GPIO_0_D[10],GPIO_0_D[8]})
-	.RESULT(RESULT)
+	.RESULT({GPIO_0_D[14],GPIO_0_D[12],GPIO_0_D[31],GPIO_0_D[33]})
+	//.RESULT(RESULT)
 );
 
 
@@ -243,25 +243,69 @@ reg [14:0] col_counter;
 always @ (posedge PCLK) begin 
 	
 		
+//		if(~toggle) begin
+//			pixel_data_RGB332[7] = camera[6]; // RED
+//			pixel_data_RGB332[6] = camera[5]; // RED
+//			pixel_data_RGB332[5] = camera[4]; // RED
+//			pixel_data_RGB332[4] = camera[1]; // GREEN
+//			pixel_data_RGB332[3] = camera[0]; // GREEN
+//			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // GREEN
+//			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
+//			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
+//		end
+//		else begin
+//			pixel_data_RGB332[1] = camera[4]; // BLUE 
+//			pixel_data_RGB332[0] = camera[3]; // BLUE
+//			pixel_data_RGB332[2] = camera[7]; // GREEN
+//			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
+//			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
+//			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
+//			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
+//			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
+//		end
+//		// 565
+//		if(~toggle) begin
+//			pixel_data_RGB332[7] = camera[7]; // RED
+//			pixel_data_RGB332[6] = camera[6]; // RED
+//			pixel_data_RGB332[5] = camera[5]; // RED
+//			pixel_data_RGB332[4] = camera[2]; // GREEN
+//			pixel_data_RGB332[3] = camera[1]; // GREEN
+//			pixel_data_RGB332[2] = camera[0]; // GREEN
+//			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
+//			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
+//		end
+//		else begin
+//			pixel_data_RGB332[1] = camera[4]; // BLUE 
+//			pixel_data_RGB332[0] = camera[3]; // BLUE
+//			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // GREEN
+//			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
+//			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
+//			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
+//			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
+//			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
+//		end
+		
+		// 444
 		if(~toggle) begin
-			pixel_data_RGB332[7] = camera[7]; // RED
-			pixel_data_RGB332[6] = camera[6]; // RED
-			pixel_data_RGB332[5] = camera[5]; // RED
-			pixel_data_RGB332[4] = camera[2]; // GREEN
-			pixel_data_RGB332[3] = camera[1]; // GREEN
-			pixel_data_RGB332[2] = camera[0]; // GREEN
-			pixel_data_RGB332[1] = pixel_data_RGB332[1]; // available next clock cycle 
-			pixel_data_RGB332[0] = pixel_data_RGB332[0]; // available next clock cycle
+			pixel_data_RGB332[7] = camera[3]; // RED
+			pixel_data_RGB332[6] = camera[2]; // RED
+			pixel_data_RGB332[5] = camera[1]; // RED
+			pixel_data_RGB332[4] = 0; //pixel_data_RGB332[4]; // GREEN
+			pixel_data_RGB332[3] = 0; //pixel_data_RGB332[3]; // GREEN
+			pixel_data_RGB332[2] = 0; //pixel_data_RGB332[2]; // GREEN
+			pixel_data_RGB332[1] = 0; //pixel_data_RGB332[1]; // available next clock cycle 
+			pixel_data_RGB332[0] = 0; //pixel_data_RGB332[0]; // available next clock cycle
 		end
 		else begin
-			pixel_data_RGB332[1] = camera[4]; // BLUE 
-			pixel_data_RGB332[0] = camera[3]; // BLUE
-			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // BLUE
 			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
 			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
 			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
-			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // from previous clock cycle
-			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
+			pixel_data_RGB332[4] = camera[7]; // GREEN
+			pixel_data_RGB332[3] = camera[6]; // GREEN
+			pixel_data_RGB332[2] = camera[5]; // GREEN
+			pixel_data_RGB332[1] = camera[3]; // BLUE 
+			pixel_data_RGB332[0] = camera[2]; // BLUE
+
 		end
 
 //		if(~toggle) begin
@@ -299,7 +343,7 @@ always @ (posedge PCLK) begin
 		W_EN = toggle;
 		
 		if(HREF) toggle = ~toggle;  
-		else toggle =0;
+		else toggle = 0;
 	
 	// Timing /////////////////////
 	
@@ -319,7 +363,7 @@ always @ (posedge PCLK) begin
 		   row_counter = 0;
 		   col_counter = 0;
 		end
-		else if(W_EN && HREF) begin 
+		else if(toggle && HREF) begin 
 			if (col_counter == 175) col_counter = col_counter;
 		   else col_counter = col_counter + 1;   
 			WRITE_ADDRESS = row_counter * 176 + col_counter;
