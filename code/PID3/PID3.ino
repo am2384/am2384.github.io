@@ -11,29 +11,34 @@ Servo servo0;  // create servo object for the left servo
 Servo servo1;  // create servo object for the right servo
 
 int line[5] = {0, 0, 0, 0, 0};
+int walls[3] = {0, 0, 0};
 int error = 0;
 int Kp = 12;
 int originalSpeed = 50;
 int motorSpeedL = 0;
 int motorSpeedR = 0;
-int counter = 1001;
 int turn = 0;
-char* directions = "lrrrrlll";
-int count = 0;
 int result;
 int sensorPinRight = A1;
 int sensorValueRight;
 int sensorPinFront = A3;
 int sensorValueFront;
+int sensorPinLeft = A4;
+int sensorValueLeft;
 int start = 0;
-int dir = 2;
-int x = 2;
-int y = 0;
 char node[2];
 
 // radio
 RF24 radio(9,10);
 const uint64_t pipes[2] = { 0x000000003CLL, 0x000000003DLL };
+
+typedef struct {
+  uint8_t x;
+  uint8_t y;
+  int8_t dir;
+} robot_self_t;
+
+robot_self_t self;
 
 typedef union {
   unsigned c: 8;
@@ -51,8 +56,6 @@ typedef union {
 square_data_t maze_data[9][9];
 square_data_t c_square;
 
-int self_x = 0, self_y = 0;
-
 void setup() {
   //Serial.begin(115200);
   Serial.begin(9600);
@@ -63,18 +66,21 @@ void setup() {
   pinMode(2, INPUT);
   pinMode(4, INPUT);
   pinMode(7, INPUT);
+  self.dir = 2; //0=N,1=E,2=S,3=W
+  self.x = 2;
+  self.y = 0;
   setup_radio();
 }
 
 void loop() {
-  if(start == 0)
+  /*if(start == 0)
   {
     while(audio() == 0)
     {
       Serial.println("No tone");
     }
     start = 1;
-  }
+  }*/
   
 //  if(readIR()==1)
 //  {
@@ -86,6 +92,8 @@ void loop() {
 //    Serial.println("");
 //  }
 
+  //leftSensor();
+
   if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
@@ -93,98 +101,46 @@ void loop() {
   else // we are at an intersection
   {
     Serial.println("Intersection");
-    if(dir == 0) y--;
-    if(dir == 1) x++;
-    if(dir == 2) y++;
-    if(dir == 3) x--;
-    c_square.east = 0;
-    c_square.south = 0;
-    c_square.west = 0;
-    c_square.north = 0;
+    stopServos();
+    inc_pos(&self);
+    update_walls(&self);
+    node[0] = self.y*9 + self.x;
+    node[1] = maze_data[self.x][self.y].c;
+    //while(!transmit_radio(node,2)){}
+
+    // A bunch of debug serial prints
+    Serial.print(" North:");
+    Serial.print(maze_data[self.x][self.y].north);
+    Serial.print(" East:");
+    Serial.print(maze_data[self.x][self.y].east);
+    Serial.print(" South:");
+    Serial.print(maze_data[self.x][self.y].south);
+    Serial.print(" West:");
+    Serial.print(maze_data[self.x][self.y].west);
+    Serial.print(" X:");
+    Serial.print(self.x);
+    Serial.print(" Y:");
+    Serial.print(self.y);
+    Serial.print(" Dir:");
+    Serial.println(self.dir);
+
     if(rightSensor() == 0)
     { 
-    turnRightSweep();
-      if(dir == 0) c_square.east = 0;
-      else if (dir == 1) c_square.south = 0;
-      else if (dir == 2) c_square.west = 0;
-      else c_square.north = 0;
-      if(frontSensor() == 1)
-      {
-        if(dir == 0){
-          c_square.north = 1;
-          c_square.west = 1;
-        }
-        else if (dir == 1){
-          c_square.east = 1;
-          c_square.north = 1;
-        }
-        else if (dir == 2){
-          c_square.south = 1;
-          c_square.east = 1;
-        }
-        else{
-          c_square.west = 1;
-          c_square.south = 1;
-        }
-      }
-      dir++;      
-      if(dir == 4) dir = 0;
+      turnRightSweep();
+      rec_right_turn(&self);
     } 
     else if(frontSensor() == 1) 
     {
       turnLeftSweep();
-      if(dir == 0){
-        c_square.east = 1;
-        c_square.north = 1;
-      }
-      else if (dir == 1){
-        c_square.south = 1;
-        c_square.east = 1;
-      }
-      else if (dir == 2){
-        c_square.west = 1;
-        c_square.south = 1;
-      }
-      else{
-        c_square.north = 1;
-        c_square.west = 1;
-      }
-      dir--;
-      if(dir < 0) dir = 3;
+      rec_left_turn(&self);
     }
     else
     {
       PIDControl();
-      if(dir == 0) c_square.east = 1;
-      else if (dir == 1) c_square.south = 1;
-      else if (dir == 2) c_square.west = 1;
-      else c_square.north = 1;
       int s_time = millis();
       while (s_time + 100 > millis())
         PIDControl();
     }
-
-    node[0] = y*9 + x;
-    node[1] = c_square.c;//0x50;
-    stopServos();
-    while(!transmit_radio(node,2)){}
-    
-    Serial.print(" North:");
-    Serial.print(c_square.north);
-    Serial.print(" East:");
-    Serial.print(c_square.east);
-    Serial.print(" South:");
-    Serial.print(c_square.south);
-    Serial.print(" West:");
-    Serial.print(c_square.west);
-    Serial.print(" Dir:");
-    Serial.print(dir);
-    Serial.print(" X:");
-    Serial.print(x);
-    Serial.print(" Y:");
-    Serial.print(y);
-    Serial.print(" Dir:");
-    Serial.println(dir);
   }
 }
 
@@ -223,18 +179,18 @@ void setup_radio(void) {
 
 bool transmit_radio(char arr[], int n) {
   radio.stopListening();
-//  Serial.write("sending");
-//  Serial.write("\n");
-//  Serial.print((uint8_t) arr[0]);
-//  Serial.write("  ");
-//  Serial.print((uint8_t) arr[1]);
-//  Serial.write("\n");
+  //  Serial.write("sending");
+  //  Serial.write("\n");
+  //  Serial.print((uint8_t) arr[0]);
+  //  Serial.write("  ");
+  //  Serial.print((uint8_t) arr[1]);
+  //  Serial.write("\n");
   bool ok = radio.write(arr, n);
 
   if (ok){}
-//    printf("ok...");
+  //    printf("ok...");
   else {
-//    printf("failed.\n\r");
+  //    printf("failed.\n\r");
     return false;
   }
 
@@ -251,7 +207,7 @@ bool transmit_radio(char arr[], int n) {
   // Describe the results
   if ( timeout )
   {
-//    printf("Failed, response timed out.\n\r");
+  //    printf("Failed, response timed out.\n\r");
     return false;
   }
   else
@@ -261,12 +217,12 @@ bool transmit_radio(char arr[], int n) {
     radio.read(ret_val, n);
 
     // Spew it
-//    Serial.write("recieved");
-//    Serial.write("\n");
-//    Serial.print((uint8_t) ret_val[0]);
-//    Serial.write("  ");
-//    Serial.print((uint8_t) ret_val[1]);
-//    Serial.write("\n");
+  //    Serial.write("recieved");
+  //    Serial.write("\n");
+  //    Serial.print((uint8_t) ret_val[0]);
+  //    Serial.write("  ");
+  //    Serial.print((uint8_t) ret_val[1]);
+  //    Serial.write("\n");
     return true;
   }
 }
@@ -274,6 +230,7 @@ bool transmit_radio(char arr[], int n) {
 int frontSensor()
 {
   sensorValueFront = analogRead(sensorPinFront);
+  //Serial.println(sensorValueFront);
   if(sensorValueFront<300) return 0;
   else return 1;
 }
@@ -281,8 +238,46 @@ int frontSensor()
 int rightSensor()
 {
   sensorValueRight = analogRead(sensorPinRight);
-  if(sensorValueRight<300) return 0;
+  //Serial.println(sensorValueRight);
+  if(sensorValueRight<200) return 0;
   else return 1;
+}
+
+int leftSensor()
+{
+  sensorValueLeft = analogRead(sensorPinLeft);
+  //Serial.println(sensorValueLeft);
+  if (sensorValueLeft<200) return 0;
+  return 1;
+}
+
+void update_walls(robot_self_t* t)
+{
+  walls[0] = leftSensor();
+  walls[1] = frontSensor();
+  walls[2] = rightSensor();
+  switch(t->dir){
+    case 0:
+      maze_data[t->x][t->y].west = walls[0];
+      maze_data[t->x][t->y].north = walls[1];
+      maze_data[t->x][t->y].east = walls[2];
+      break;
+    case 1:
+      maze_data[t->x][t->y].north = walls[0];
+      maze_data[t->x][t->y].east = walls[1];
+      maze_data[t->x][t->y].south = walls[2];
+      break;
+    case 2:
+      maze_data[t->x][t->y].east = walls[0];
+      maze_data[t->x][t->y].south = walls[1];
+      maze_data[t->x][t->y].west = walls[2];
+      break;
+    default:
+      maze_data[t->x][t->y].south = walls[0];
+      maze_data[t->x][t->y].west = walls[1];
+      maze_data[t->x][t->y].north = walls[2];
+      break;
+  }
 }
 
 void make180turn()
@@ -350,7 +345,6 @@ int readIR(){
 
 void PIDControl()
 {
-
   error = IRmeasurements();
   motorSpeedL = -(Kp*error) + originalSpeed; 
   motorSpeedR = +(Kp*error) + originalSpeed;
@@ -370,10 +364,10 @@ int audio()
     fft_run();
     fft_mag_log();
     sei();
-//    Serial.println("start");
-//    for (byte i = 0 ; i < FFT_N/2 ; i++) {
-//      Serial.println(fft_log_out[i]);
-//    }
+  //    Serial.println("start");
+  //    for (byte i = 0 ; i < FFT_N/2 ; i++) {
+  //      Serial.println(fft_log_out[i]);
+  //    }
 
     if(fft_log_out[19] > 65 || fft_log_out[20] > 65 || fft_log_out[21] > 65)
     {
@@ -480,4 +474,24 @@ void stopServos()
 void goStraight()
 {
    runServo(90, 90);
+}
+
+void inc_pos(robot_self_t* t)
+{
+  if(t->dir == 0) t->y--;
+  else if(t->dir == 1) t->x++;
+  else if(t->dir == 2) t->y++;
+  else if(t->dir == 3) t->x--;
+}
+
+void rec_left_turn(robot_self_t *t)
+{
+  t->dir = (t->dir-1);
+  if(t->dir == -1)
+    t->dir = 3;
+}
+
+void rec_right_turn(robot_self_t *t)
+{
+  t->dir = (t->dir+1) % 4;
 }
