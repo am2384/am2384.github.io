@@ -63,17 +63,17 @@ typedef struct {
   int8_t dir;
 } robot_self_t;
 
-robot_self_t rSelf;
+robot_self_t self;
 
-char int_pos(char x, char y) {
+int int_pos(int x, int y) {
   return x*9 + y;
 }
 
-char x_pos(char pos) {
+int x_pos(int pos) {
   return pos / 9;
 }
 
-char y_pos(char pos) {
+int y_pos(int pos) {
   return pos % 9;
 }
 
@@ -84,11 +84,13 @@ bool check_explored(char x, char y) {
   return explored[pos/8] & (1<<(pos%8));
 }
 
-
-if(dir == 0) y--;
-    if(dir == 1) x++;
-    if(dir == 2) y++;
-    if(dir == 3) x--;
+void set_explored(char x, char y, bool e) {
+  unsigned char pos = int_pos(x,y);
+  if (pos > 81)
+    return;
+  if (e)
+    explored[pos/8] |= (1<<(pos%8));
+}
 
 void inc_pos_dir(robot_self_t* rt){
   rt->dir %= 4;
@@ -114,58 +116,89 @@ unsigned char test_path[82];
 unsigned char path_depth;
 
 bool ids_search(void) {
-  rTester.x = rSelf.x;
-  rTester.y = rSelf.y;
-  rTester.dir = rSelf.dir;
-  char n = 0;
+  rTester.x = self.x;
+  rTester.y = self.y;
+  rTester.dir = self.dir;
+  char n = 1;
   n_path = true;
-  while (ids_recursive(n)){
+  path_depth = 0;
+  while (!ids_recursive( &rTester, n)){
     if (n > 82 || n_path)
       return false;
     n_path = true;
+    n++;
+    //Serial.println(">>>>>>>>>>>>>>>>>>>> New Search");
   }
+  return true;
 }
 
-bool np_checker(robot_self_t* rt, char turn_r) {
+int np_checker(robot_self_t* rt, char turn_r) {
   turn_r += rt->dir;
   switch (turn_r%4) {
     case 0:
-      return !(rt->north);
+      return !(maze_data[rt->x][rt->y].north);
     case 1:
-      return !(rt->east);
+      return !(maze_data[rt->x][rt->y].east);
     case 2:
-      return !(rt->south);
+      return !(maze_data[rt->x][rt->y].south);
     default:
-      return !(rt->west);
+      return !(maze_data[rt->x][rt->y].west);
   }
 }
 
+int check_old_path(robot_self_t* rt) {
+  int x;
+  int pos = int_pos(rt->x, rt->y);
+  if (pos == int_pos(self.x, self.y))
+    return 1;
+  for (x = 0; x<path_depth-1; x++){
+    if (test_path[x] == pos)
+      return 1;
+  }
+  return 0;
+}
 
 //TODO: Have function update path depth and test_path[]
-bool ids_recursive(robot_self_t* rt, char r_depth) {
-  if (!check_explored(rTester.x, rTester.y))
+bool ids_recursive(robot_self_t* rt, int r_depth) {
+  /*Serial.println("recursive!");
+  Serial.println(rt->x);
+  Serial.println(rt->y);*/
+  if (!check_explored(rt->x, rt->y))
     return true;
   if (r_depth < 1){
     n_path = false;
     return false;
   }
   //terminating condition
-  char o_x = rt->x;
-  char o_y = rt->y;
-  char o_dir = rt->dir;
+  int o_x = rt->x;
+  int o_y = rt->y;
+  int o_dir = rt->dir;
   int d;
   for (d=0; d<4; d++){
-    if (d == 2) d++;
     if (np_checker(rt,d)){
       //move tester
+      rt->dir = (rt->dir + d) % 4;
       inc_pos_dir(rt);
+      test_path[path_depth] = int_pos(rt->x, rt->y);
+      path_depth++;
+      if (check_old_path(rt)){
+        path_depth--;
+        //search in that dir didn't work so try next dir
+        rt->x = o_x;
+        rt->y = o_y;
+        rt->dir = o_dir;
+        continue;
+      }
       if(ids_recursive(rt,r_depth - 1))
         return true;
+      path_depth--;
       //search in that dir didn't work so try next dir
       rt->x = o_x;
       rt->y = o_y;
       rt->dir = o_dir;
-    }
+    } /*else {
+      Serial.println("wall");
+    }*/
   }
   //none of the searches paths give a good node so failed.
   return false;
@@ -264,58 +297,101 @@ void ds_tester(void) {
 
 void setup(void)
 {
-  //
-  // Print preamble
-  //
+  Serial.begin(9600);
+  self.dir = 0; //0=N,1=E,2=S,3=W
+  self.x = 0;
+  self.y = 1;
 
-  ds_tester();
+  set_explored(0, 0, 1);
+  maze_data[0][0].north = 1;
+  maze_data[0][0].west = 1;
 
-  Serial.begin(57600);
-  printf_begin();
-  printf("\n\rRF24/examples/GettingStarted/\n\r");
-  printf("ROLE: %s\n\r",role_friendly_name[role]);
-  printf("*** PRESS 'T' to begin transmitting to the other node\n\r");
+  set_explored(1, 0, 1);
+  maze_data[1][0].north = 1;
+  maze_data[1][0].east = 1;
 
-  setup_radio();
+  set_explored(1, 1, 1);
+  maze_data[1][1].east = 1;
+
+  set_explored(1, 2, 1);
+  maze_data[1][2].south = 1;
+  maze_data[1][2].east = 1;
+
+  set_explored(0, 2, 1);
+  maze_data[0][2].north = 1;
+  maze_data[0][2].west = 1;
+
+  set_explored(0, 3, 1);
+  maze_data[0][3].west = 1;
+
+  set_explored(1, 3, 1);
+  maze_data[1][3].north = 1;
+  maze_data[1][3].south = 1;
+
+  set_explored(2, 3, 1);
+  maze_data[2][3].north = 1;
+
+  set_explored(3, 3, 1);
+  maze_data[3][3].east = 1;
+
+  set_explored(3, 2, 1);
+  maze_data[3][2].east = 1;
+
+  set_explored(3, 1, 1);
+  maze_data[3][1].west = 1;
+  maze_data[3][1].east = 1;
+
+  set_explored(3, 0, 1);
+  maze_data[3][0].north = 1;
+  maze_data[3][0].west = 1;
+  maze_data[3][0].east = 1;
+
+  set_explored(2, 2, 1);
+  maze_data[2][2].west = 1;
+  maze_data[2][2].south = 1;
+
+  set_explored(2, 1, 1);
+  maze_data[2][1].west = 1;
+  maze_data[2][1].east = 1;
+
+  set_explored(2, 0, 1);
+  maze_data[2][0].north = 1;
+  maze_data[2][0].west = 1;
+  maze_data[2][0].east = 1;
+
+  set_explored(3, 4, 1);
+  maze_data[3][4].south = 1;
+  maze_data[3][4].east = 1;
+
+  set_explored(2, 4, 1);
+  maze_data[2][4].south = 1;
+  maze_data[2][4].west = 1;
+
+  set_explored(0, 4, 1);
+  maze_data[0][4].south = 1;
+  maze_data[0][4].west = 1;
+
+  set_explored(1, 4, 1);
+  maze_data[1][4].north = 1;
+  maze_data[1][4].south = 1;
+  maze_data[1][4].east = 1;
+
+  set_explored(0, 1, 1);
+  maze_data[0][1].south = 1;
+  maze_data[0][1].west = 1;
+
+  Serial.println(ids_search());
+  Serial.println(path_depth);
+  Serial.println("pos");
+  int n;
+  for (n = 0; n < path_depth; n++){
+    Serial.println(x_pos(test_path[n]));
+    Serial.println(y_pos(test_path[n]));
+    Serial.println("");
+  }
 }
 
 void loop(void)
 {
-  char node[16];
-  node[0] = 1;
-  node[1] = c_square.c;//0x50;
-  while(!transmit_radio(node,2)){
-    delay(1000);
-  }
-  delay(1000);
-  node[0] = 10;
-  node[1] = 0x40;
-  while(!transmit_radio(node,2)){
-    delay(1000);
-  }
-  delay(1000);
-  node[0] = 19;
-  node[1] = 0x60;
-  while(!transmit_radio(node,2)){
-    delay(1000);
-  }
-  delay(1000);
-  node[0] = 18;
-  node[1] = 0xA0;
-  while(!transmit_radio(node,2)){
-    delay(1000);
-  }
-  delay(1000);
-  node[0] = 9;
-  node[1] = 0x80;
-  while(!transmit_radio(node,2)){
-    delay(1000);
-  }
-  delay(1000);
-  node[0] = 0;
-  node[1] = c_square.c;//0x90;
-  while(!transmit_radio(node,2)){
-    delay(1000);
-  }
-  delay(1000);
+  
 }
