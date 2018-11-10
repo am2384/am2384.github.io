@@ -63,7 +63,7 @@ robot_self_t rTester;
 bool n_path;
 unsigned char test_path[82];
 unsigned char turns[82];
-unsigned char path_depth = 0;
+unsigned int path_depth = 0;
 
 ////////////////////////////////////////////////////////
 // Code
@@ -80,8 +80,13 @@ void setup() {
   pinMode(4, INPUT);
   pinMode(7, INPUT);
   self.dir = 2; //0=N,1=E,2=S,3=W
-  self.x = 2;
+  self.x = 0;
   self.y = 0;
+  //TODO: Setup First Square Here
+  set_explored(0, 0, 1);
+  maze_data[0][0].north = 1;
+  maze_data[0][0].west = 1;
+  
   setup_radio();
 }
 
@@ -105,7 +110,7 @@ void loop() {
 //    Serial.println("");
 //  }
 
-  //leftSensor();
+  //rightSensor();
 
   if (!checkIntersection()) // we are not at an intersection
   {
@@ -116,6 +121,7 @@ void loop() {
     Serial.println("Intersection");
     stopServos();
     inc_pos(&self);
+    c_path_depth++;
     update_walls(&self);
     set_explored(self.x, self.y, 1);
     node[0] = self.y*9 + self.x;
@@ -138,10 +144,20 @@ void loop() {
     Serial.print(" Dir:");
     Serial.println(self.dir);
 
-    if (c_path_depth >= path_depth){
+    if (c_path_depth < path_depth){
       cmd_intersection();
     } else {
       if (ids_search()){
+        // path planning debug statements
+        Serial.println(ids_search());
+        Serial.println(path_depth);
+        Serial.println("pos");
+        int n;
+        for (n = 0; n < path_depth; n++){
+          Serial.println(x_pos(test_path[n]));
+          Serial.println(y_pos(test_path[n]));
+          Serial.println("");
+        }
         c_path_depth = 0;
         cmd_intersection();
       }
@@ -176,7 +192,7 @@ void cmd_intersection() {
   if (turns[c_path_depth] == 0){
     PIDControl();
     int s_time = millis();
-    while (s_time + 100 > millis())
+    while (s_time + 500 > millis())
       PIDControl();
   } else if (turns[c_path_depth] == 1){
     turnRightSweep();
@@ -277,7 +293,7 @@ int frontSensor()
 {
   sensorValueFront = analogRead(sensorPinFront);
   //Serial.println(sensorValueFront);
-  if(sensorValueFront<300) return 0;
+  if(sensorValueFront<390) return 0;
   else return 1;
 }
 
@@ -293,7 +309,7 @@ int leftSensor()
 {
   sensorValueLeft = analogRead(sensorPinLeft);
   //Serial.println(sensorValueLeft);
-  if (sensorValueLeft<200) return 0;
+  if (sensorValueLeft<175) return 0;
   return 1;
 }
 
