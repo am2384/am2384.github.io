@@ -1122,15 +1122,192 @@ maze_data[3][4].north = 1;
                           <div class="col-lg-8 mx-auto">
                               <div class="modal-body">
                                   <!-- Project Details Go Here -->
-                                  <h2 class="text-uppercase">Coming Soon</h2>
-                                  <p class="item-intro text-muted">Lorem ipsum dolor sit amet consectetur.</p>
-                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/03-full.jpg" alt="">
-                                  <p>Use this area to describe your project. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Est blanditiis dolorem culpa incidunt minus dignissimos deserunt repellat aperiam quasi sunt officia expedita beatae cupiditate, maiores repudiandae, nostrum, reiciendis facere nemo!</p>
+                                  <h2 class="text-uppercase">Lab4</h2>
+
+                                  <h3>Camera Team</h3>
+                                  <h4 align="left">Introduction</h4>
+                                  <p align="left">Lab 4 focused on configuring a OV7670 camera to output data and configuring a FPGA to process images. We integrated the two components together in order to demonstrate color detection.</p>
+                                  <h4 align="left">Hardware</h4>
+                                  <p align="left">As described in the lab. The camera utilizes 3.3V power and logic. The arduino has a 3.3V supply connection so power is handled by using this. To make the arduino talk in 3.3V logic levels, the internal pull-up resistors for I2C connection were disabled in the internal library. Then external pull-up resistors connected to the 3.3V power rail on the Arduino were added to the I2C lines. This meant that the I2C bus would be in 3.3V. Another cable was constructed to connect an I/O pin and a ground pin to the camera from the FPGA. This supplies the 24MHz clock required to run the camera. These were all bundled into a single connector to make the wiring neat and clean. To connect the camera to the FPGA the connector was fully pinned to connect D0-7 and the reference clock/sync signals to the FPGA. Lastly a set of connectors will be made to send data from the FPGA to the Arduino.</p>
+                                  <h4 align="left">Software</h4>
+                                  <p align="left">We defined the slave address to be 0x21. In our ain setup, we use the function read_key_registers, detailed below. We then write to the registers that we determined in the prelab (described above). We call read_key_registers once more to ensure that the registers have been written to. We then set the color matrix by writing to registers as given in the sample code. This is all done in the setup, so that it is only executed once. </p>
+                                  <pre><code>#include <Wire.h>
+
+#define OV7670_I2C_ADDRESS 0x21 /*TODO: write this in hex (eg. 0xAB) */
+
+
+///////// Main Program //////////////
+void setup() {
+  Wire.begin();
+  Serial.begin(9600);
+
+  // TODO: READ KEY REGISTERS
+  read_key_registers();
+  
+  delay(100);
+
+  // TODO: WRITE KEY REGISTERS
+  Serial.println(OV7670_write_register(0x12,0x80));   // COM 7 bit 7 - set to 1 to reset
+  Serial.println(OV7670_write_register(0x0C,0x08));   // COM 3 bit 3 - set to 1 to enable scaling
+  Serial.println(OV7670_write_register(0x11,0x40));   // CLK RC bit 6 - set to 1 for external clock
+  OV7670_write_register(0x12,0x06);//0x04 for no color bar   // COM 7 bit 2- RGB format (bit 2- set to 1, bit 0- set to 0)
+  OV7670_write_register(0x40,0xD0); // COM 15- bit 5:4 -> 01
+  //OV7670_write_register(,);  // MVFP bits 5 (1 = mirror) and bit 4 (1 = vflip)
+  //OV7670_write_register(,);   // COM 9 bit 6:4- automatic gain ceiling
+  
+  
+  read_key_registers();
+  set_color_matrix();
+}</code></pre>
+                                  <p align="left">This is the function used to read the key registers. These are the registers that are written to in the setup function.</p>
+                                  <pre><code>void read_key_registers(){
+  /*TODO: DEFINE THIS FUNCTION*/
+  Serial.println("BEGIN");
+  Serial.println(read_register_value(0x12), HEX);
+  Serial.println(read_register_value(0x0C), HEX);
+  Serial.println(read_register_value(0x11), HEX);
+  Serial.println(read_register_value(0x12), HEX);
+  Serial.println(read_register_value(0x40), HEX);
+  Serial.println("END");
+} </code></pre>
+                                  <p align="left">This is the function used to read a particular register value, given an address. It uses the I2C protocol.</p> 
+<pre><code>byte read_register_value(int register_address){
+  byte data = 0;
+  Wire.beginTransmission(OV7670_I2C_ADDRESS);
+  Wire.write(register_address);
+  Wire.endTransmission();
+  Wire.requestFrom(OV7670_I2C_ADDRESS,1);
+  while(Wire.available()<1);
+  data = Wire.read();
+  return data;
+}</code></pre>
+                                  <p align="left">The following image is a scope trace of the I2C bus. The blue is the clock line and the yellow is the data line.</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab4/img1.jpg" alt="">
+                                  <p align="left">For communicating between the Arduino and the FPGA we opted to make this process simple. We’ll be using a parallel communication scheme. Using 3 wires to represent a number from 0-6. This will allows us to specify what shape and color the treasure is with 0 representing the absence of a treasure. There are 7 combinations of shapes and colours (no shape detected, red triangle, red square, red circle, blue triangle, blue square, blue circle). Since there’s a shortage of pins on the Arduino we’ll need to expand the Arduino’s IO pins using a pair of 8:1 MUXs. However, this will be done during integration.</P>
+                                  <h3>FPGA Team</h3>
+                                  <p align="left">The FPGA team’s goal was to use a DE0-Nano to store and process the pixel data from the camera. First we downloaded the template file and followed the lab instructions to setup PLL. Next, we connected the VGA adapter using the FPGA’s GPIO_0 pins (GPIO_0[5] -> GPIO_0[23]). After uploading the template, we were able to see the default black rectangle with blue surrounding.</p>
+                                  <p align="left">To understand how the FPGA template works, and to gain robust control of the system, we tried displaying custom patterns on the monitor. To write different images to memory, we added an always block for this purpose. This always block is triggered by the 50MHz clock, and increments the MEM_WRITE_ADDRESS. </p>
+<pre><code>always @ (posedge c2_sig) begin
+    W_EN = 1;
+    
+    if(WRITE_ADDRESS < 144 * 176) begin
+      WRITE_ADDRESS <= WRITE_ADDRESS + 1;
+    end
+    else begin
+      WRITE_ADDRESS <= WRITE_ADDRESS;
+    end</code></pre>
+                                  <p align="left">We were also able to add logic to write various patterns. For example, we experimented by toggling the background color, and by drawing various designs. In the example below, we were able to output a test with different bars of various colors. </p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab4/img2.jpg" alt="">
+                                  <h4 alight="left">Downsampling</h4>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab4/img3.png" alt="">
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab4/img4.png" alt="">
+                                  <p align="left">To get pixel data from OV7670, we connect D7 - D0 on OV7670 to GPIO1 pins 33 - 26 on the  FPGA. Three additional signals PCLK, HREF and VSYNC are connected to GPIO1 pins 23, 24, 25. Pixel format on OV7670 is 16 bits/pixel, and they come in as two bytes over two clock cycles of PCLK. We downsample the data from RGB444 to RGB332 format by taking only the most significant bits of a color. Downsampling is done by an always block which is edge triggered by the PCLK signal from the camera; we introduce a 1-bit toggle signal which toggles at half the frequency of PCLK. By coupling toggle to Write_Enable, we write to M9K RAM every alternative cycle,allowing us to gather information from two bytes before every write. We increment WRITE_ADDRESS every alternative clock cycle as long as HREF is HIGH. To make our code more robust against bugs, we calculate the WRITE_ADDRESS as = (176*ROW + COLUMN) where ROW and COLUMN are constrained to have values in ranges [0, SCREEN_HEIGHT-1] and [0, SCREEN_WIDTH-1] respectively. COLUMN was incremented every alternative cycle in sync with W_EN while row was incremented every negative edge of HREF(which indicates end of one row pixel data). The ROW, COLUMN and WRITE_ADDRESS were reset to zero when VSYNC was HIGH, indicated start of new frame. The following code shows our logic:   </p>
+<pre><code>reg toggle;
+reg prev_VSYNC;
+reg prev_HREF;
+wire res;
+reg toggle;
+assign res = prev_HREF==1 && HREF==0;
+reg [14:0] row_counter;
+reg [14:0] col_counter;
+
+always @ (posedge PCLK) begin
+
+   if(~toggle) begin
+      pixel_data_RGB332[7] = camera[3]; // RED
+  pixel_data_RGB332[6] = camera[2]; // RED
+  pixel_data_RGB332[5] = camera[1]; // RED
+  pixel_data_RGB332[4] = 0; //
+  pixel_data_RGB332[3] = 0; //pix
+  pixel_data_RGB332[2] = 0; //p
+  pixel_data_RGB332[1] = 0; //pix
+  pixel_data_RGB332[0] = 0; //pi
+   end
+   else begin
+  pixel_data_RGB332[7] = pixel_data_RGB332[7]; //
+  pixel_data_RGB332[6] = pixel_data_RGB332[6]; //
+  pixel_data_RGB332[5] = pixel_data_RGB332[5]; //
+  pixel_data_RGB332[4] = camera[7]; // GREEN
+  pixel_data_RGB332[3] = camera[6]; // GREEN
+  pixel_data_RGB332[2] = camera[5]; // GREEN
+  pixel_data_RGB332[1] = camera[3]; // BLUE 
+  pixel_data_RGB332[0] = camera[2]; // BLUE
+
+   end
+
+
+   W_EN = toggle;
+    
+   if(HREF) toggle = ~toggle;  
+   else toggle = 0;
+   prev_HREF = HREF; 
+  
+   if(VSYNC) begin 
+      WRITE_ADDRESS = 0;
+      row_counter = 0;
+  col_counter = 0;
+   end
+   else if(toggle && HREF) begin 
+      if (col_counter == 175) col_counter = col_counter;
+  else col_counter = col_counter + 1;   
+  WRITE_ADDRESS = row_counter * 176 + col_counter;
+   end
+   else if(res) begin // negative edge of HREF
+  col_counter = 0;
+  if (row_counter == 143) row_counter = row_counter;
+  else row_counter = row_counter + 1;
+   end
+   else begin
+  WRITE_ADDRESS = WRITE_ADDRESS;
+  col_counter = col_counter;
+  row_counter = row_counter;
+   end
+      
+    
+      
+end</code></pre>
+
+                                  <h4 alight="left">Color Detection</h4>
+                                  <p align="left">After downsampling the pixel data from camera and writing it into M9K memory module, we processed the data in the IMAGE_PROCESSOR module. The three colors we wanted to detect were red, blue and white. This information could be output from the IMAGE_PROCESSOR module into Arduino using 2 bits of RESULT variable. </p>
+                                  <p align="left">We made two counters for counting the number of red and blue pixels. One frame of data corresponded to VGA_VSYNC_NEG being HIGH. During the time VGA_VSYNC_NEG was HIGH, we analyzed the PIXEL_IN input, and incremented the red_count, blue_count or neither (for color white). At the end of the frame (a negative edge on VGA_VSYNC_NEG), we output:</p>
                                   <ul class="list-inline">
-                                      <li>Date: January 2017</li>
-                                      <li>Client: Finish</li>
-                                      <li>Category: Identity</li>
+                                      <li>2’b11 for red (when red_count > blue_count)   </li>
+                                      <li>2’b10 for blue (when red_count > blue_count)</li>
+                                      <li>2’b0x for white (when (red_count + blue_count) < ½ of the total number of pixels)</li>
                                   </ul>
+                                  <p align="left">Our code is shown below:</p>
+<pre><code>always @(posedge CLK) begin
+  prev_VGA_VSYNC_NEG = VGA_VSYNC_NEG;
+  if(negege_VGA_VSYNC_NEG) begin
+    RESULT[0] = (red_count > blue_count); 
+    RESULT[1] = red_count + blue_count > 1/2*176 * 144; 
+  end
+  else begin
+    RESULT[0] = RESULT[0];
+    RESULT[1] = RESULT[1];
+  end
+  
+  if(~VGA_VSYNC_NEG) begin
+    red_count = 0;
+    blue_count = 0;
+  end
+  else begin
+    if (red && VGA_READ_MEM_EN) red_count = red_count + 1'b1;
+    else red_count = red_count;
+    if (blue && VGA_READ_MEM_EN) blue_count = blue_count + 1'b1;
+    else blue_count = blue_count;
+  end
+end</code></pre>
+                                  <h3>Integration</h3>
+                                  <p align="left">Lastly, we integrated the camera and FPGA together as shown in the image below. The Arduino communicates with the camera over I2C. Then the camera communicates with the FPGA through the 8 pixel data lines and 3 additional lines for PCLK, HREF and VSYNC. Lastly, the FPGA communicates its results to the Arduino through 2 data lines. </p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab4/img5.jpg" alt="">
+                                  <p align="left">We were able to able to get the camera to correctly output the color bar test. We were also able to get our monitor to show a live display of our camera. As you can see from the image below, our camera is pointed at a triangle, and a triangle is visible in the display above.</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/labs/lab4/img6.JPG" alt="">
+                                  <p align="left">In the video below, you will see our monitor displaying a live feed from the camera.</p>
+                                  <iframe width="640" height="360" src="https://www.youtube.com/embed/PM_BzSlJ4Zw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                  <p align="left">To detect color, we created a simple image processor for our FPGA. It counts the number of red vs blue vs white pixels. This is because during competition, the wall will either be white (no shape) or red or blue (shape present). In the video below, we first point our camera at a white wall. Then, you see that our Arduino is printing “WHITE.” Then we point our camera at a blue shape. You then see that our Arduino is printing “BLUE.” Lastly, we point our camera at a red shape and the Arduino prints “RED.”</p>
+                                  <iframe width="640" height="360" src="https://www.youtube.com/embed/8_hdXBKb-Hs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                  
                                   <button class="btn btn-primary" data-dismiss="modal" type="button">
                                       <i class="fa fa-times"></i>
                                       Close Project
