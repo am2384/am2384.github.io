@@ -1211,55 +1211,53 @@ reg [14:0] col_counter;
 
 always @ (posedge PCLK) begin
 
-   if(~toggle) begin
-      pixel_data_RGB332[7] = camera[3]; // RED
-  pixel_data_RGB332[6] = camera[2]; // RED
-  pixel_data_RGB332[5] = camera[1]; // RED
-  pixel_data_RGB332[4] = 0; //
-  pixel_data_RGB332[3] = 0; //pix
-  pixel_data_RGB332[2] = 0; //p
-  pixel_data_RGB332[1] = 0; //pix
-  pixel_data_RGB332[0] = 0; //pi
-   end
-   else begin
-  pixel_data_RGB332[7] = pixel_data_RGB332[7]; //
-  pixel_data_RGB332[6] = pixel_data_RGB332[6]; //
-  pixel_data_RGB332[5] = pixel_data_RGB332[5]; //
-  pixel_data_RGB332[4] = camera[7]; // GREEN
-  pixel_data_RGB332[3] = camera[6]; // GREEN
-  pixel_data_RGB332[2] = camera[5]; // GREEN
-  pixel_data_RGB332[1] = camera[3]; // BLUE 
-  pixel_data_RGB332[0] = camera[2]; // BLUE
+  if(~toggle) begin
+    pixel_data_RGB332[7] = camera[3]; // RED
+    pixel_data_RGB332[6] = camera[2]; // RED
+    pixel_data_RGB332[5] = camera[1]; // RED
+    pixel_data_RGB332[4] = 0; //
+    pixel_data_RGB332[3] = 0; //pix
+    pixel_data_RGB332[2] = 0; //p
+    pixel_data_RGB332[1] = 0; //pix
+    pixel_data_RGB332[0] = 0; //pi
+  end
+  else begin
+    pixel_data_RGB332[7] = pixel_data_RGB332[7]; //
+    pixel_data_RGB332[6] = pixel_data_RGB332[6]; //
+    pixel_data_RGB332[5] = pixel_data_RGB332[5]; //
+    pixel_data_RGB332[4] = camera[7]; // GREEN
+    pixel_data_RGB332[3] = camera[6]; // GREEN
+    pixel_data_RGB332[2] = camera[5]; // GREEN
+    pixel_data_RGB332[1] = camera[3]; // BLUE 
+    pixel_data_RGB332[0] = camera[2]; // BLUE
+  end
 
-   end
-
-
-   W_EN = toggle;
+  W_EN = toggle;
     
-   if(HREF) toggle = ~toggle;  
-   else toggle = 0;
-   prev_HREF = HREF; 
+  if(HREF) toggle = ~toggle;  
+  else toggle = 0;
+  prev_HREF = HREF; 
   
-   if(VSYNC) begin 
-      WRITE_ADDRESS = 0;
-      row_counter = 0;
-  col_counter = 0;
-   end
-   else if(toggle && HREF) begin 
-      if (col_counter == 175) col_counter = col_counter;
-  else col_counter = col_counter + 1;   
-  WRITE_ADDRESS = row_counter * 176 + col_counter;
-   end
-   else if(res) begin // negative edge of HREF
-  col_counter = 0;
-  if (row_counter == 143) row_counter = row_counter;
-  else row_counter = row_counter + 1;
-   end
-   else begin
-  WRITE_ADDRESS = WRITE_ADDRESS;
-  col_counter = col_counter;
-  row_counter = row_counter;
-   end
+  if(VSYNC) begin 
+    WRITE_ADDRESS = 0;
+    row_counter = 0;
+    col_counter = 0;
+  end
+  else if(toggle && HREF) begin 
+    if (col_counter == 175) col_counter = col_counter;
+    else col_counter = col_counter + 1;   
+    WRITE_ADDRESS = row_counter * 176 + col_counter;
+  end
+  else if(res) begin // negative edge of HREF
+    col_counter = 0;
+    if (row_counter == 143) row_counter = row_counter;
+    else row_counter = row_counter + 1;
+  end
+  else begin
+    WRITE_ADDRESS = WRITE_ADDRESS;
+    col_counter = col_counter;
+    row_counter = row_counter;
+  end
       
     
       
