@@ -222,7 +222,7 @@
                       </a>
                       <div class="portfolio-caption">
                           <h4>Lab 4</h4>
-                          <p class="text-muted">Phew!</p>
+                          <p class="text-muted">FPGA and Shape Detection</p>
                       </div>
                   </div>
                   <div class="col-md-4 col-sm-6 portfolio-item">
@@ -928,9 +928,7 @@ void loop() {
 								  </code></pre>
 								  <p align="left">In the video below, you will see our rover tracking a line using PID control. When it comes to an line intersection it checks for a wall to the right. If there is a wall, the rover continues straight. If there is no wall, the rover will turn right. The red LED indicates if the rover detects a wall. In the video our rover successfully goes straight through 3 intersections where there is a right-wall. Our rover also successfully turns right twice when there is no right-wall. Lastly, our rover detects another “rover” (IR hat) and turns 180 degrees to avoid the other rover.</p>
 								  <iframe width="853" height="480" src="https://www.youtube.com/embed/AwN4xREmKHA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                                  <ul class="list-inline">
-                                      <li>Date: October 12 2018</li>
-                                  </ul>
+                                  f
                                   <button class="btn btn-primary" data-dismiss="modal" type="button">
                                       <i class="fa fa-times"></i>
                                       Close Project
@@ -1122,7 +1120,7 @@ maze_data[3][4].north = 1;
                           <div class="col-lg-8 mx-auto">
                               <div class="modal-body">
                                   <!-- Project Details Go Here -->
-                                  <h2 class="text-uppercase">Lab4</h2>
+                                  <h2 class="text-uppercase">Lab 4: FPGA and Shape Detection</h2>
 
                                   <h3>Camera Team</h3>
                                   <h4 align="left">Introduction</h4>
@@ -1266,11 +1264,11 @@ always @ (posedge PCLK) begin
     
       
 end</code></pre>
-
-                                  <h4 alight="left">Color Detection</h4>
+                                  <p></p>
+                                  <h4 align="left">Color Detection</h4>
                                   <p align="left">After downsampling the pixel data from camera and writing it into M9K memory module, we processed the data in the IMAGE_PROCESSOR module. The three colors we wanted to detect were red, blue and white. This information could be output from the IMAGE_PROCESSOR module into Arduino using 2 bits of RESULT variable. </p>
                                   <p align="left">We made two counters for counting the number of red and blue pixels. One frame of data corresponded to VGA_VSYNC_NEG being HIGH. During the time VGA_VSYNC_NEG was HIGH, we analyzed the PIXEL_IN input, and incremented the red_count, blue_count or neither (for color white). At the end of the frame (a negative edge on VGA_VSYNC_NEG), we output:</p>
-                                  <ul class="list-inline">
+                                  <ul class="list-inline" align="left">
                                       <li>2’b11 for red (when red_count > blue_count)   </li>
                                       <li>2’b10 for blue (when red_count > blue_count)</li>
                                       <li>2’b0x for white (when (red_count + blue_count) < ½ of the total number of pixels)</li>
@@ -1298,7 +1296,7 @@ end</code></pre>
     else blue_count = blue_count;
   end
 end</code></pre>
-                                  <h3>Integration</h3>
+                                  <p></p><h3>Integration</h3>
                                   <p align="left">Lastly, we integrated the camera and FPGA together as shown in the image below. The Arduino communicates with the camera over I2C. Then the camera communicates with the FPGA through the 8 pixel data lines and 3 additional lines for PCLK, HREF and VSYNC. Lastly, the FPGA communicates its results to the Arduino through 2 data lines. </p>
                                   <img class="img-fluid d-block mx-auto" src="img/labs/lab4/img5.jpg" alt="">
                                   <p align="left">We were able to able to get the camera to correctly output the color bar test. We were also able to get our monitor to show a live display of our camera. As you can see from the image below, our camera is pointed at a triangle, and a triangle is visible in the display above.</p>
@@ -1307,7 +1305,21 @@ end</code></pre>
                                   <iframe width="640" height="360" src="https://www.youtube.com/embed/PM_BzSlJ4Zw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                                   <p align="left">To detect color, we created a simple image processor for our FPGA. It counts the number of red vs blue vs white pixels. This is because during competition, the wall will either be white (no shape) or red or blue (shape present). In the video below, we first point our camera at a white wall. Then, you see that our Arduino is printing “WHITE.” Then we point our camera at a blue shape. You then see that our Arduino is printing “BLUE.” Lastly, we point our camera at a red shape and the Arduino prints “RED.”</p>
                                   <iframe width="640" height="360" src="https://www.youtube.com/embed/8_hdXBKb-Hs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                  
+                                  <p></p><h3>Prelab Highlights</h3>
+                                  <p align="left">There are 594 Kbits of embedded memory. So our maximum memory is 594 Kbits. This means we can store 74,250 entries, each entry having 8 bits corresponding to a pixel.</p>
+                                  <p align="left">The options are YUV/YCbCr, RGB565/555, GRB 4:2:2 and Raw RGB Data. Raw data provides the most information, but we intend to use RGB565/555 instead as we will be downsampling anyways and do not require this level of data.</p>
+                                  <p align="left">Register setting on camera:</p>
+                                  <ul class="list-inline" align="left">
+                                      <li>  Reset all registers: COM 7 bit 7</li>
+                                      <li>  Enable scaling: COM 3 bit 3</li>
+                                      <li>  Use external clock as internal clock: CLK RC bit 6</li>
+                                      <li>  Enable a color bar test: COM 7 bit 2</li>
+                                      <li>  Vertical and mirror flip the output image: MVFP bit 5 and 4</li>
+                                      <li>  Automatic gain ceiling: COM 9 bit 6:4</li>
+                                  </ul>
+                                  <ul class="list-inline">
+                                      <li>Date: November 10 2018</li>
+                                  </ul>
                                   <button class="btn btn-primary" data-dismiss="modal" type="button">
                                       <i class="fa fa-times"></i>
                                       Close Project
