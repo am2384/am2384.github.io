@@ -218,7 +218,7 @@
                                   <i class="fa fa-plus fa-3x"></i>
                               </div>
                           </div>
-                          <img class="img-fluid" src="img/portfolio/lab1.jpg" alt="">
+                          <img class="img-fluid" src="img/portfolio/lab4thumbnail.JPG" alt="">
                       </a>
                       <div class="portfolio-caption">
                           <h4>Lab 4</h4>
@@ -1141,7 +1141,7 @@ void setup() {
 
   // TODO: READ KEY REGISTERS
   read_key_registers();
-  
+
   delay(100);
 
   // TODO: WRITE KEY REGISTERS
@@ -1152,8 +1152,8 @@ void setup() {
   OV7670_write_register(0x40,0xD0); // COM 15- bit 5:4 -> 01
   //OV7670_write_register(,);  // MVFP bits 5 (1 = mirror) and bit 4 (1 = vflip)
   //OV7670_write_register(,);   // COM 9 bit 6:4- automatic gain ceiling
-  
-  
+
+
   read_key_registers();
   set_color_matrix();
 }</code></pre>
@@ -1168,7 +1168,7 @@ void setup() {
   Serial.println(read_register_value(0x40), HEX);
   Serial.println("END");
 } </code></pre>
-                                  <p align="left">This is the function used to read a particular register value, given an address. It uses the I2C protocol.</p> 
+                                  <p align="left">This is the function used to read a particular register value, given an address. It uses the I2C protocol.</p>
 <pre><code>byte read_register_value(int register_address){
   byte data = 0;
   Wire.beginTransmission(OV7670_I2C_ADDRESS);
@@ -1187,7 +1187,7 @@ void setup() {
                                   <p align="left">To understand how the FPGA template works, and to gain robust control of the system, we tried displaying custom patterns on the monitor. To write different images to memory, we added an always block for this purpose. This always block is triggered by the 50MHz clock, and increments the MEM_WRITE_ADDRESS. </p>
 <pre><code>always @ (posedge c2_sig) begin
     W_EN = 1;
-    
+
     if(WRITE_ADDRESS < 144 * 176) begin
       WRITE_ADDRESS <= WRITE_ADDRESS + 1;
     end
@@ -1228,24 +1228,24 @@ always @ (posedge PCLK) begin
     pixel_data_RGB332[4] = camera[7]; // GREEN
     pixel_data_RGB332[3] = camera[6]; // GREEN
     pixel_data_RGB332[2] = camera[5]; // GREEN
-    pixel_data_RGB332[1] = camera[3]; // BLUE 
+    pixel_data_RGB332[1] = camera[3]; // BLUE
     pixel_data_RGB332[0] = camera[2]; // BLUE
   end
 
   W_EN = toggle;
-    
-  if(HREF) toggle = ~toggle;  
+
+  if(HREF) toggle = ~toggle;
   else toggle = 0;
-  prev_HREF = HREF; 
-  
-  if(VSYNC) begin 
+  prev_HREF = HREF;
+
+  if(VSYNC) begin
     WRITE_ADDRESS = 0;
     row_counter = 0;
     col_counter = 0;
   end
-  else if(toggle && HREF) begin 
+  else if(toggle && HREF) begin
     if (col_counter == 175) col_counter = col_counter;
-    else col_counter = col_counter + 1;   
+    else col_counter = col_counter + 1;
     WRITE_ADDRESS = row_counter * 176 + col_counter;
   end
   else if(res) begin // negative edge of HREF
@@ -1258,9 +1258,9 @@ always @ (posedge PCLK) begin
     col_counter = col_counter;
     row_counter = row_counter;
   end
-      
-    
-      
+
+
+
 end</code></pre>
                                   <p></p>
                                   <h4 align="left">Color Detection</h4>
@@ -1275,14 +1275,14 @@ end</code></pre>
 <pre><code>always @(posedge CLK) begin
   prev_VGA_VSYNC_NEG = VGA_VSYNC_NEG;
   if(negege_VGA_VSYNC_NEG) begin
-    RESULT[0] = (red_count > blue_count); 
-    RESULT[1] = red_count + blue_count > 1/2*176 * 144; 
+    RESULT[0] = (red_count > blue_count);
+    RESULT[1] = red_count + blue_count > 1/2*176 * 144;
   end
   else begin
     RESULT[0] = RESULT[0];
     RESULT[1] = RESULT[1];
   end
-  
+
   if(~VGA_VSYNC_NEG) begin
     red_count = 0;
     blue_count = 0;
