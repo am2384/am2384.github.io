@@ -1268,7 +1268,7 @@ end</code></pre>
                                   <p align="left">We made two counters for counting the number of red and blue pixels. One frame of data corresponded to VGA_VSYNC_NEG being HIGH. During the time VGA_VSYNC_NEG was HIGH, we analyzed the PIXEL_IN input, and incremented the red_count, blue_count or neither (for color white). At the end of the frame (a negative edge on VGA_VSYNC_NEG), we output:</p>
                                   <ul class="list-inline" align="left">
                                       <li>2’b11 for red (when red_count > blue_count)   </li>
-                                      <li>2’b10 for blue (when red_count > blue_count)</li>
+                                      <li>2’b10 for blue (when red_count < blue_count)</li>
                                       <li>2’b0x for white (when (red_count + blue_count) < ½ of the total number of pixels)</li>
                                   </ul>
                                   <p align="left">Our code is shown below:</p>
