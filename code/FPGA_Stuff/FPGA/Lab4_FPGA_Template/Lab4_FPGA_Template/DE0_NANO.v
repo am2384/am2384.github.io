@@ -285,14 +285,38 @@ always @ (posedge PCLK) begin
 //			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // from previous clock cycle
 //		end
 		
-		// 444
+		// X444
+//		if(~toggle) begin
+//			pixel_data_RGB332[7] = camera[3]; // RED
+//			pixel_data_RGB332[6] = camera[2]; // RED
+//			pixel_data_RGB332[5] = camera[1]; // RED
+//			pixel_data_RGB332[4] = 0; //pixel_data_RGB332[4]; // GREEN
+//			pixel_data_RGB332[3] = 0; //pixel_data_RGB332[3]; // GREEN
+//			pixel_data_RGB332[2] = 0; //pixel_data_RGB332[2]; // GREEN
+//			pixel_data_RGB332[1] = 0; //pixel_data_RGB332[1]; // available next clock cycle 
+//			pixel_data_RGB332[0] = 0; //pixel_data_RGB332[0]; // available next clock cycle
+//		end
+//		else begin
+//			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
+//			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
+//			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
+//			pixel_data_RGB332[4] = camera[7]; // GREEN
+//			pixel_data_RGB332[3] = camera[6]; // GREEN
+//			pixel_data_RGB332[2] = camera[5]; // GREEN
+//			pixel_data_RGB332[1] = camera[3]; // BLUE 
+//			pixel_data_RGB332[0] = camera[2]; // BLUE
+//
+//		end
+		
+		
+			// 444X
 		if(~toggle) begin
-			pixel_data_RGB332[7] = camera[3]; // RED
-			pixel_data_RGB332[6] = camera[2]; // RED
-			pixel_data_RGB332[5] = camera[1]; // RED
-			pixel_data_RGB332[4] = 0; //pixel_data_RGB332[4]; // GREEN
-			pixel_data_RGB332[3] = 0; //pixel_data_RGB332[3]; // GREEN
-			pixel_data_RGB332[2] = 0; //pixel_data_RGB332[2]; // GREEN
+			pixel_data_RGB332[7] = camera[7]; // RED
+			pixel_data_RGB332[6] = camera[6]; // RED
+			pixel_data_RGB332[5] = camera[5]; // RED
+			pixel_data_RGB332[4] = camera[3]; //pixel_data_RGB332[4]; // GREEN
+			pixel_data_RGB332[3] = camera[2]; //pixel_data_RGB332[3]; // GREEN
+			pixel_data_RGB332[2] = camera[1];; //pixel_data_RGB332[2]; // GREEN
 			pixel_data_RGB332[1] = 0; //pixel_data_RGB332[1]; // available next clock cycle 
 			pixel_data_RGB332[0] = 0; //pixel_data_RGB332[0]; // available next clock cycle
 		end
@@ -300,11 +324,11 @@ always @ (posedge PCLK) begin
 			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
 			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
 			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
-			pixel_data_RGB332[4] = camera[7]; // GREEN
-			pixel_data_RGB332[3] = camera[6]; // GREEN
-			pixel_data_RGB332[2] = camera[5]; // GREEN
-			pixel_data_RGB332[1] = camera[3]; // BLUE 
-			pixel_data_RGB332[0] = camera[2]; // BLUE
+			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // GREEN
+			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // GREEN
+			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // GREEN
+			pixel_data_RGB332[1] = camera[7]; // BLUE 
+			pixel_data_RGB332[0] = camera[6]; // BLUE
 
 		end
 
