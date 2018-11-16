@@ -1,7 +1,7 @@
 #define LOG_OUT 1 // use the log output function
 #define FFT_N 256 // set to 256 point fft
 
-#include <FFT.h> // include the library
+//#include <FFT.h> // include the library
 #include <Servo.h>
 #include <SPI.h>
 #include "nRF24L01.h"
@@ -90,7 +90,7 @@ void setup() {
   setup_radio();
 }
 
-void loop() {
+void loop() {  
   /*if(start == 0)
   {
     while(audio() == 0)
@@ -110,7 +110,7 @@ void loop() {
 //    Serial.println("");
 //  }
 
-  //rightSensor();
+  //frontSensor();
 
   if (!checkIntersection()) // we are not at an intersection
   {
@@ -191,9 +191,14 @@ void loop() {
 void cmd_intersection() {
   if (turns[c_path_depth] == 0){
     PIDControl();
-    int s_time = millis();
-    while (s_time + 500 > millis())
+    unsigned long s_time = millis();
+    Serial.println("begin");
+    while (s_time + 350 > millis()){
       PIDControl();
+      if(checkIntersection())
+        Serial.println(millis());
+      }
+    Serial.println("end");
   } else if (turns[c_path_depth] == 1){
     turnRightSweep();
     rec_right_turn(&self);
@@ -293,7 +298,7 @@ int frontSensor()
 {
   sensorValueFront = analogRead(sensorPinFront);
   //Serial.println(sensorValueFront);
-  if(sensorValueFront<390) return 0;
+  if(sensorValueFront<450) return 0;
   else return 1;
 }
 
@@ -361,6 +366,7 @@ void make180turn2()
    turn=0;
 }
 
+/*
 int readIR(){
     //cli();  // UDRE interrupt slows this way down on arduino1.0
     byte adcsra_temp = ADCSRA;
@@ -404,6 +410,7 @@ int readIR(){
       return 0;
     } 
 }
+*/
 
 void PIDControl()
 {
@@ -413,7 +420,7 @@ void PIDControl()
 
   runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left 
 }
-
+/*
 int audio()
 {
       cli();
@@ -439,14 +446,14 @@ int audio()
       return 0;
     }
   
-}
+}*/
 
 void turnRightSweep()
 {
   runServo(50, -30);
   delay(900);
   runServo(10, 10);
-  delay(400);
+  delay(300);
 }
 
 void mydelay(int count)
@@ -461,7 +468,7 @@ void turnLeftSweep() {
   runServo(-30, 50);
   delay(900);
   runServo(10, 10);
-  delay(400);
+  delay(300);
 }
 
 void runServo(int leftSpeed, int rightSpeed)
@@ -479,13 +486,16 @@ bool checkIntersection()
   line[2] = !(digitalRead(2));
   line[3] = !(digitalRead(4));
   line[4] = !(digitalRead(7));
-  /*Serial.print(line[0]);
-  Serial.print(line[1]);
-  Serial.print(line[2]);
-  Serial.print(line[3]);
-  Serial.print(line[4]);
-  Serial.println("");*/
-  return (line[0] && line[1] && line[2] && line[3] && line[4]);
+  
+//  Serial.print(line[0]);
+//  Serial.print(line[1]);
+//  Serial.print(line[2]);
+//  Serial.print(line[3]);
+//  Serial.print(line[4]);
+//  Serial.println("");
+  if ((line[0]+line[1]+line[2]+line[3]+line[4])>=4) return 1;
+  return 0;
+  //return (line[0] && line[1] && line[2] && line[3] && line[4]);
 }
 
 int IRmeasurements()
