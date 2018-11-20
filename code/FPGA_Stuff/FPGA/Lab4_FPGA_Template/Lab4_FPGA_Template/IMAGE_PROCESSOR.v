@@ -116,9 +116,9 @@ always @(posedge CLK) begin
 	if(negege_VGA_VSYNC_NEG) begin
 		RESULT[0] <= (red_count > blue_count); // UPDATE COLOR WHEN A FRAME ENDS
 		RESULT[1] <= ((red_count + blue_count) > 3/5*176 * 144); // 0 for WHITE => 0 means absence of treasure
-		if(x1> x2 && x2 > x3 && x3 > x4 && x4 > x5 && x5 > x6) RESULT[3:2] <= 2'b00;
-		else if((x1 > x2 && x2 > x3) && (x6 > x5 && x5 > x4)) RESULT[3:2] <= 2'b01;
-		else RESULT[3:2] <= 2'b10;
+		if(x1> x2 && x2 > x3 && x3 > x4 && x4 > x5 && x5 > x6) RESULT[3:2] <= 2'b00; // triangle
+		else if((x1 > x2 && x2 > x3) && (x6 > x5 && x5 > x4)) RESULT[3:2] <= 2'b01; // diamond
+		else RESULT[3:2] <= 2'b10; // square  
 	end
 	else begin
 		RESULT[0] <= RESULT[0];

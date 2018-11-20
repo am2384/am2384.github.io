@@ -2,6 +2,12 @@
 #define OV7670_I2C_ADDRESS 0x21 
 
 ///////// Main Program //////////////
+
+int R0;
+int R1;
+int R2;
+int R3;
+
 void setup() {
   Wire.begin();
   Serial.begin(9600);
@@ -25,21 +31,51 @@ void setup() {
   
   read_key_registers();
   set_color_matrix();
-  pinMode(8, INPUT);
-  pinMode(9, INPUT);
+  pinMode(8, INPUT); // RESULT[0]
+  pinMode(9, INPUT); // RESULT[1]
+  pinMode(10, INPUT); // RESULT[2]
+  pinMode(11, INPUT); // RESULT[3]
 }
 
-void loop(){
-  if(digitalRead(9)){
-    if(digitalRead(8)){
-      Serial.println("RED");
+void loop()
+{
+  R0 = digitalRead(8);
+  R1 = digitalRead(9);
+  R2 = digitalRead(10);
+  R3 = digitalRead(11);
+  
+  if(R1)
+  {
+    if(R0))
+    {
+      if(R2==0 && R3==0) 
+      {
+        Serial.println("RED TRIANGLE ");
+      } else if(R2==1 && R3==0)
+      {
+        Serial.println("RED DIAMOND");
+      } else 
+      {
+        Serial.println("RED SQUARE");
+      }
     }
-    else{
-      Serial.println("BLUE");
+    else
+    {
+       if(R2==0 && R3==0) 
+      {
+        Serial.println("BLUE TRIANGLE ");
+      } else if(R2==1 && R3==0)
+      {
+        Serial.println("BLUE DIAMOND");
+      } else 
+      {
+        Serial.println("BLUE SQUARE");
+      }
     }
   }
-  else{
-    Serial.println("WHITE");
+  else
+  {
+    Serial.println("No Treasure");
   }
   
  }
