@@ -157,16 +157,67 @@ reg [7:0] mostly_red;
 
 `ifdef DEBUG
 ///* Update Write Address *///////
+reg [14:0] x;
+reg [14:0] y;
 always @ (posedge CLOCK_50) begin
 		
-		W_EN = 1;
+		W_EN <= 1;
+		WRITE_ADDRESS <= y * 176 + x;
+		// SCREEN_WIDTH 176 (x axis) 
+		// SCREEN_HEIGHT 144 (y axis)
 		
-		if(WRITE_ADDRESS < 144 * 176) begin
-			WRITE_ADDRESS <= WRITE_ADDRESS + 1;
+		if( (x < (SCREEN_WIDTH - 1)) && (y < (SCREEN_HEIGHT-1) )) begin
+			x <= x + 1;
+		end
+		else if( (x > (SCREEN_WIDTH - 1)) && (y < (SCREEN_HEIGHT-1) )) begin
+			y <= y + 1;
+			x <= 0;
 		end
 		else begin
-			WRITE_ADDRESS <= WRITE_ADDRESS;
+			y <= 0;
+			x <= 0;
 		end
+		
+		//Choose One and comment all the others
+		
+		// WRITING A RED SQUARE with length = 114 
+		if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
+		else begin
+			if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
+			else pixel_data_RGB332 <= RED;
+		end
+		
+		
+		// WRITING A RED TRIANGLE  
+		if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
+		else begin
+			if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
+			else begin
+				if((x <= (88 - 0.5*(y-15))) || (x > (88 + 0.5*(y-15)))) pixel_data_RGB332 <= WHITE;
+				else pixel_data_RGB332 <= RED;
+			end
+		end
+		
+		// WRITING A RED diamond  
+		if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
+		else begin
+			if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
+			else begin
+				if(y <= 57) begin
+					if((x <= (88 - (y-15))) || (x > (88 + (y-15)))) pixel_data_RGB332 <= WHITE;
+					else pixel_data_RGB332 <= RED;
+				end
+				else begin
+					if((x <= (88 - (129-y))) || (x > (88 +(129-y)))) pixel_data_RGB332 <= WHITE;
+					else pixel_data_RGB332 <= RED;
+				end
+			
+			end
+		end
+		
+		
+		
+		
 		
 		
 //		if(WRITE_ADDRESS % 176 < 20) begin
@@ -195,7 +246,7 @@ always @ (posedge CLOCK_50) begin
 //		end 
 
 		// mostly blue
-		if(WRITE_ADDRESS % 176 < 20) begin
+	/* 	if(WRITE_ADDRESS % 176 < 20) begin
 			mostly_blue <= WHITE;
 		end
 		else if(WRITE_ADDRESS % 176 < 40) begin
@@ -223,7 +274,7 @@ always @ (posedge CLOCK_50) begin
 			mostly_red <= WHITE;
 		end 
 		
-		pixel_data_RGB332 = mostly_red;
+		pixel_data_RGB332 = mostly_red; */
 		
 end
 `endif
@@ -234,7 +285,7 @@ end
 reg prev_HREF;
 wire res;
 reg toggle;
-assign res = prev_HREF==1 && HREF==0;
+assign res = (prev_HREF==1 && HREF==0);
 reg [14:0] row_counter;
 reg [14:0] col_counter;
 
@@ -311,24 +362,24 @@ always @ (posedge PCLK) begin
 		
 			// 444X
 		if(~toggle) begin
-			pixel_data_RGB332[7] = camera[7]; // RED
-			pixel_data_RGB332[6] = camera[6]; // RED
-			pixel_data_RGB332[5] = camera[5]; // RED
-			pixel_data_RGB332[4] = camera[3]; //pixel_data_RGB332[4]; // GREEN
-			pixel_data_RGB332[3] = camera[2]; //pixel_data_RGB332[3]; // GREEN
-			pixel_data_RGB332[2] = camera[1];; //pixel_data_RGB332[2]; // GREEN
-			pixel_data_RGB332[1] = 0; //pixel_data_RGB332[1]; // available next clock cycle 
-			pixel_data_RGB332[0] = 0; //pixel_data_RGB332[0]; // available next clock cycle
+			pixel_data_RGB332[7] <= camera[7]; // RED
+			pixel_data_RGB332[6] <= camera[6]; // RED
+			pixel_data_RGB332[5] <= camera[5]; // RED
+			pixel_data_RGB332[4] <= camera[3]; //pixel_data_RGB332[4]; // GREEN
+			pixel_data_RGB332[3] <= camera[2]; //pixel_data_RGB332[3]; // GREEN
+			pixel_data_RGB332[2] <= camera[1];; //pixel_data_RGB332[2]; // GREEN
+			pixel_data_RGB332[1] <= 0; //pixel_data_RGB332[1]; // available next clock cycle 
+			pixel_data_RGB332[0] <= 0; //pixel_data_RGB332[0]; // available next clock cycle
 		end
 		else begin
-			pixel_data_RGB332[7] = pixel_data_RGB332[7]; // from previous clock cycle
-			pixel_data_RGB332[6] = pixel_data_RGB332[6]; // from previous clock cycle
-			pixel_data_RGB332[5] = pixel_data_RGB332[5]; // from previous clock cycle
-			pixel_data_RGB332[4] = pixel_data_RGB332[4]; // GREEN
-			pixel_data_RGB332[3] = pixel_data_RGB332[3]; // GREEN
-			pixel_data_RGB332[2] = pixel_data_RGB332[2]; // GREEN
-			pixel_data_RGB332[1] = camera[7]; // BLUE 
-			pixel_data_RGB332[0] = camera[6]; // BLUE
+			pixel_data_RGB332[7] <= pixel_data_RGB332[7]; // from previous clock cycle
+			pixel_data_RGB332[6] <= pixel_data_RGB332[6]; // from previous clock cycle
+			pixel_data_RGB332[5] <= pixel_data_RGB332[5]; // from previous clock cycle
+			pixel_data_RGB332[4] <= pixel_data_RGB332[4]; // GREEN
+			pixel_data_RGB332[3] <= pixel_data_RGB332[3]; // GREEN
+			pixel_data_RGB332[2] <= pixel_data_RGB332[2]; // GREEN
+			pixel_data_RGB332[1] <= camera[7]; // BLUE 
+			pixel_data_RGB332[0] <= camera[6]; // BLUE
 
 		end
 
@@ -364,10 +415,10 @@ always @ (posedge PCLK) begin
 		
 		
 		
-		W_EN = toggle;
+		W_EN <= toggle;
 		
-		if(HREF) toggle = ~toggle;  
-		else toggle = 0;
+		if(HREF) toggle <= ~toggle;  
+		else toggle <= 0;
 	
 	// Timing /////////////////////
 	
@@ -380,27 +431,27 @@ always @ (posedge PCLK) begin
 	// 7th    CC: HREF = 1, toggle = 0->1 , W_EN = 1->0, first byte read,  row_counter=0, col_counter = 2->3
 	// 8th    CC: HREF = 1, toggle = 1->0 , W_EN = 0->1, second byte read, row_counter=0, col_counter = 3->3      CHECK
 	
-		prev_HREF = HREF; 
+		prev_HREF <= HREF; 
 	
 		if(VSYNC) begin 
-			WRITE_ADDRESS = 0;
-		   row_counter = 0;
-		   col_counter = 0;
+			WRITE_ADDRESS <= 0;
+			row_counter <= 0;
+		    col_counter <= 0;
 		end
 		else if(toggle && HREF) begin 
-			if (col_counter == 175) col_counter = col_counter;
-		   else col_counter = col_counter + 1;   
-			WRITE_ADDRESS = row_counter * 176 + col_counter;
+			if (col_counter == 175) col_counter <= col_counter;
+		   else col_counter <= col_counter + 1;   
+			WRITE_ADDRESS <= row_counter * 176 + col_counter;
 		end
 		else if(res) begin // negative edge of HREF
-		   col_counter = 0;
-			if (row_counter == 143) row_counter = row_counter;
-			else row_counter = row_counter + 1;
+		   col_counter <= 0;
+			if (row_counter == 143) row_counter <= row_counter;
+			else row_counter <= row_counter + 1;
 		end
 		else begin
-			WRITE_ADDRESS = WRITE_ADDRESS;
-			col_counter = col_counter;
-			row_counter = row_counter;
+			WRITE_ADDRESS <= WRITE_ADDRESS;
+			col_counter <= col_counter;
+			row_counter <= row_counter;
 		end
       
 		

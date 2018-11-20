@@ -15,15 +15,6 @@ module IMAGE_PROCESSOR (
 	RESULT
 );
 	
-localparam R = 2'b01;
-localparam B = 2'b00;
-localparam W = 2'b10;
-
-// C0 = (87, 71),
-//C1 = (43, 35), 
-//C2 = (131, 35), 
-//C3 = (43, 107),
-//C4 = (131, 107), 
 
 
 
@@ -44,11 +35,6 @@ wire white;
 wire red;
 wire blue;
 ////////////////////////////////
-reg [1:0] c0;
-reg [1:0] c1;
-reg [1:0] c2;
-reg [1:0] c3;
-reg [1:0] c4;
 
 ////////////////////////
 // you’ll need to create a system to pass information 
@@ -65,84 +51,42 @@ reg [1:0] c4;
 //assign blue = PIXEL_IN[7]==0 && ((PIXEL_IN[2]==1) || (PIXEL_IN[1]==1 && PIXEL_IN[0]==1) );
 //assign red  = (PIXEL_IN[7:6] > PIXEL_IN[1:0]);
 //assign blue = (PIXEL_IN[7:6] < PIXEL_IN[1:0]);
-assign white = PIXEL_IN[7] & PIXEL_IN[4] & PIXEL_IN[2];
-assign black = (PIXEL_IN[1] == 0) & ~ white;
-assign blue =  (PIXEL_IN[1]) & ~white;
-
-always @(posedge CLK) begin
-	if(~VGA_VSYNC_NEG) begin
-		//RESULT[0] = (c0 == 2'b01);
-		//RESULT[1] = (c0 == 2'b11);
-		if(c1== R && c2==R && c3==R && c4==R) RESULT[3:2]= 2'b00;
-		else if(c1== W && c2==W && c3==R && c4==R) RESULT[3:2]= 2'b01;
-		else if(c1== W && c2==W && c3==W && c4==W) RESULT[3:2]= 2'b10;
-		else RESULT[3:2] = RESULT[3:2];
-	end
-end
 
 
-//‘Red’    =  2’b01
-//‘Blue’    = 2’b00
-//‘White’  = 2’b10
-//‘Other’  = 2’b11    
+//assign white = PIXEL_IN[7] & PIXEL_IN[4] & PIXEL_IN[2];
+//assign black = (PIXEL_IN[1] == 0) & ~ white;
+//assign blue =  (PIXEL_IN[1]) & ~white;
 
-//always @(posedge CLK) begin
-//	if(VGA_PIXEL_Y == 35) begin   // c1
-//		if(VGA_PIXEL_X== 43) begin
-//			if(red) c1 = 2'b01;
-//			else if(blue) c1 = 2'b00;
-//			else if(white) c1 = 2'b10;
-//			else c1 = 2'b11;
-//		end
-//		else if(VGA_PIXEL_X== 131) begin // c2
-//			if(red) c2 = 2'b01;
-//			else if(blue) c2 = 2'b00;
-//			else if(white) c2 = 2'b10;
-//			else c2 = 2'b11;
-//		end
-//	end
-//	else if(VGA_PIXEL_Y == 107) begin  // c3
-//		if(VGA_PIXEL_X== 43) begin
-//			if(red) c3 = 2'b01;
-//			else if(blue) c3 = 2'b00;
-//			else if(white) c3 = 2'b10;
-//			else c3 = 2'b11;
-//		end
-//		else if(VGA_PIXEL_X == 131) begin // c4
-//			if(red) c4 = 2'b01;
-//			else if(blue) c4 = 2'b00;
-//			else if(white) c4 = 2'b10;
-//			else c4 = 2'b11;
-//		end
-//	end 
-//	else if(VGA_PIXEL_Y == 71) begin // c0
-//		if(VGA_PIXEL_X== 87) begin
-//			if(red) c0 = 2'b01;
-//			else if(blue) c0 = 2'b00;
-//			else if(white) c0 = 2'b10;
-//			else c0 = 2'b11;
-//		end
-//	end
-//	
-//	
-//	// C0 = (87, 71),
-////C1 = (43, 35), 
-////C2 = (131, 35), 
-////C3 = (43, 107),
-////C4 = (131, 107), 
-//	
-//	
-//	
-//end
+
+// RGB332 => RRR_GGG_BB
+assign red = (PIXEL_IN[7]==1 || (PIXEL_IN[6]==1 && PIXEL_IN[5]==1) ) && PIXEL_IN[2]==0;
+assign blue = PIXEL_IN[7]==0 && ( PIXEL_IN[1]==1 );
+assign white = (PIXEL_IN[7]==1 && PIXEL_IN[4]==1 && PIXEL_IN[1]==1) || (~red && ~blue);  
+
+
 
 reg [18:0] red_count;
 reg [18:0] blue_count;
 reg prev_VGA_VSYNC_NEG;
 wire negege_VGA_VSYNC_NEG;
+reg t1;
+reg [9:0] x1;
+reg t2;
+reg [9:0] x2;
+reg t3;
+reg [9:0] x3;
+reg t4;
+reg [9:0] x4;
+reg t5;
+reg [9:0] x5;
+reg t6;
+reg [9:0] x6;
+
 assign negege_VGA_VSYNC_NEG = prev_VGA_VSYNC_NEG & ~VGA_VSYNC_NEG;
 
-always @(posedge CLK) begin
-	prev_VGA_VSYNC_NEG = VGA_VSYNC_NEG;
+/////////////////////////////////////////////////// PREVIOUS CODE ////////////
+
+/* prev_VGA_VSYNC_NEG = VGA_VSYNC_NEG;
 	
 	if(negege_VGA_VSYNC_NEG) begin
 		RESULT[0] = (red_count > blue_count); // UPDATE COLOR WHEN A FRAME ENDS
@@ -162,8 +106,109 @@ always @(posedge CLK) begin
 		else red_count = red_count;
 		if (black && VGA_READ_MEM_EN) blue_count = blue_count + 1'b1;
 		else blue_count = blue_count;
-	end
+	end */
 	//RESULT[0] = red;
+//////////////////////////////////////////////////////////////////////////////
+
+always @(posedge CLK) begin
+	prev_VGA_VSYNC_NEG <= VGA_VSYNC_NEG;
+	
+	if(negege_VGA_VSYNC_NEG) begin
+		RESULT[0] <= (red_count > blue_count); // UPDATE COLOR WHEN A FRAME ENDS
+		RESULT[1] <= ((red_count + blue_count) > 3/5*176 * 144); // 0 for WHITE => 0 means absence of treasure
+		if(x1> x2 && x2 > x3 && x3 > x4 && x4 > x5 && x5 > x6) RESULT[3:2] <= 2'b00;
+		else if((x1 > x2 && x2 > x3) && (x6 > x5 && x5 > x4)) RESULT[3:2] <= 2'b01;
+		else RESULT[3:2] <= 2'b10;
+	end
+	else begin
+		RESULT[0] <= RESULT[0];
+		RESULT[1] <= RESULT[1];
+		RESULT[3:2] <= RESULT[3:2];
+	end
+	
+	// Color Detection Code 
+	if(~VGA_VSYNC_NEG) begin
+		red_count <= 0;
+		blue_count <= 0;
+	end
+	else begin
+		if (red && VGA_READ_MEM_EN) red_count <= red_count + 1'b1;
+		else red_count <= red_count;
+		if (blue && VGA_READ_MEM_EN) blue_count <= blue_count + 1'b1;
+		else blue_count <= blue_count;
+	end
+
+
+
+	// Shape Detection Code
+	if(VGA_VSYNC_NEG && VGA_READ_MEM_EN) begin
+	
+		if(VGA_PIXEL_Y== 45) begin
+			if((red || blue) && t1) begin
+					x1 <= VGA_PIXEL_X;
+					t1 <= ~t1;
+			end
+		end
+		else if(VGA_PIXEL_Y == 50) begin
+			if((red || blue) && t2) begin
+				x2 <= VGA_PIXEL_X;
+				t2 <= ~t2;
+			end
+		end
+		else if(VGA_PIXEL_Y == 55) begin
+			if((red || blue) && t3) begin
+				x3 <= VGA_PIXEL_X;
+				t3 <= ~t3;
+			end
+		end
+		else if(VGA_PIXEL_Y == 86) begin
+			if((red || blue) && t4) begin
+				x4 <= VGA_PIXEL_X;
+				t4 <= ~x4;
+			end
+		end
+		else if(VGA_PIXEL_Y == 91) begin
+			if((red || blue) && t5) begin
+				x5 <= VGA_PIXEL_X;
+				t5 <= ~t5;
+			end
+		end
+		else if(VGA_PIXEL_Y == 96) begin
+			if((red || blue) && t6) begin
+				x6 <= VGA_PIXEL_X;
+				t6 <= ~t6;
+			end
+		end
+		else begin
+			x1 <= x1;
+			x2 <= x2;
+			x3 <= x3;
+			x4 <= x4;
+			x5 <= x5;
+			x6 <= x6;
+			t1 <= t1;
+			t2 <= t2;
+			t3 <= t3;
+			t4 <= t4;
+			t5 <= t5;
+			t6 <= t6;
+		end
+	end
+	else begin
+		x1 <= x1;
+		x2 <= x2;
+		x3 <= x3;
+		x4 <= x4;
+		x5 <= x5;
+		x6 <= x6;
+		t1 <= t1;
+		t2 <= t2;
+		t3 <= t3;
+		t4 <= t4;
+		t5 <= t5;
+		t6 <= t6;
+	end
 end
+
 
 endmodule
