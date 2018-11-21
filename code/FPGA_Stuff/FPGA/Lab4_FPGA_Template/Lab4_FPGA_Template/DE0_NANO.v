@@ -1,6 +1,6 @@
 `define SCREEN_WIDTH 176
 `define SCREEN_HEIGHT 144
-//`define DEBUG 0
+`define DEBUG 0
 ///////* DON'T CHANGE THIS PART *///////
 module DE0_NANO(
 	CLOCK_50,
@@ -157,63 +157,63 @@ reg [7:0] mostly_red;
 
 `ifdef DEBUG
 ///* Update Write Address *///////
-reg [14:0] x;
-reg [14:0] y;
-always @ (posedge CLOCK_50) begin
+reg [14:0] xval;
+reg [14:0] yval;
+wire tapa;
+always @ (posedge c1_sig) begin
+		
 		
 		W_EN <= 1;
-		WRITE_ADDRESS <= y * 176 + x;
+		
+		
 		// SCREEN_WIDTH 176 (x axis) 
 		// SCREEN_HEIGHT 144 (y axis)
+		if(WRITE_ADDRESS < (176*144-1)) WRITE_ADDRESS <= WRITE_ADDRESS + 1;
+		else WRITE_ADDRESS <= 0;
 		
-		if( (x < (SCREEN_WIDTH - 1)) && (y < (SCREEN_HEIGHT-1) )) begin
-			x <= x + 1;
-		end
-		else if( (x > (SCREEN_WIDTH - 1)) && (y < (SCREEN_HEIGHT-1) )) begin
-			y <= y + 1;
-			x <= 0;
-		end
-		else begin
-			y <= 0;
-			x <= 0;
-		end
+
+		yval <= WRITE_ADDRESS / 176;
+		xval <= WRITE_ADDRESS % 176; 
+		
+		
+
 		
 		//Choose One and comment all the others
 		
 		// WRITING A RED SQUARE with length = 114 
-		if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
+		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
 		else begin
-			if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
+			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
 			else pixel_data_RGB332 <= RED;
 		end
 		
 		
 		// WRITING A RED TRIANGLE  
-		if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
-		else begin
-			if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
-			else begin
-				if((x <= (88 - 0.5*(y-15))) || (x > (88 + 0.5*(y-15)))) pixel_data_RGB332 <= WHITE;
-				else pixel_data_RGB332 <= RED;
-			end
-		end
-		
-		// WRITING A RED diamond  
-		if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
-		else begin
-			if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
-			else begin
-				if(y <= 57) begin
-					if((x <= (88 - (y-15))) || (x > (88 + (y-15)))) pixel_data_RGB332 <= WHITE;
-					else pixel_data_RGB332 <= RED;
-				end
-				else begin
-					if((x <= (88 - (129-y))) || (x > (88 +(129-y)))) pixel_data_RGB332 <= WHITE;
-					else pixel_data_RGB332 <= RED;
-				end
-			
-			end
-		end
+//		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
+//		else begin
+//			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
+//			else begin
+//				if((xval <= (88 - (yval-15)/2)) || (xval > (88 + (yval-15)/2))) pixel_data_RGB332 <= WHITE;
+//				else pixel_data_RGB332 <= RED;
+//			end
+//		end
+//		
+//		// WRITING A RED diamond  
+//		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
+//		else begin
+//			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
+//			else begin
+//				if(yval <= 57) begin
+//					if((xval <= (88 - (yval-15))) || (xval > (88 + (yval-15)))) pixel_data_RGB332 <= WHITE;
+//					else pixel_data_RGB332 <= RED;
+//				end
+//				else begin
+//					if((xval <= (88 - (129-yval))) || (xval > (88 +(129-yval)))) pixel_data_RGB332 <= WHITE;
+//					else pixel_data_RGB332 <= RED;
+//				end
+//			
+//			end
+//		end
 		
 		
 		
@@ -259,7 +259,6 @@ always @ (posedge CLOCK_50) begin
 		else begin
 			mostly_blue <= WHITE;
 		end 
-
 		// mostly blue
 		if(WRITE_ADDRESS % 176 < 20) begin
 			mostly_red <= WHITE;
@@ -282,15 +281,17 @@ end
 // input to pixel data
 
 //wire start_toggle;
+
+
+
+`ifndef DEBUG
+
 reg prev_HREF;
 wire res;
 reg toggle;
 assign res = (prev_HREF==1 && HREF==0);
 reg [14:0] row_counter;
 reg [14:0] col_counter;
-
-
-`ifndef DEBUG
 always @ (posedge PCLK) begin 
 	
 		
