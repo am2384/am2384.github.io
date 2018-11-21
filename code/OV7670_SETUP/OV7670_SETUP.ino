@@ -44,9 +44,9 @@ void loop()
   R2 = digitalRead(10);
   R3 = digitalRead(11);
   
-  if(R1)
+  if(R1==1)
   {
-    if(R0))
+    if(R0==1)
     {
       if(R2==0 && R3==0) 
       {
