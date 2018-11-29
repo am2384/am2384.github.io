@@ -110,7 +110,7 @@ void loop() {
 //    Serial.println("");
 //  }
 
-  //frontSensor();
+  //leftSensor();
 
   if (!checkIntersection()) // we are not at an intersection
   {
@@ -298,7 +298,7 @@ int frontSensor()
 {
   sensorValueFront = analogRead(sensorPinFront);
   //Serial.println(sensorValueFront);
-  if(sensorValueFront<450) return 0;
+  if(sensorValueFront<500) return 0;
   else return 1;
 }
 
@@ -313,8 +313,8 @@ int rightSensor()
 int leftSensor()
 {
   sensorValueLeft = analogRead(sensorPinLeft);
-  //Serial.println(sensorValueLeft);
-  if (sensorValueLeft<175) return 0;
+  Serial.println(sensorValueLeft);
+  if (sensorValueLeft<180) return 0;
   return 1;
 }
 
@@ -477,6 +477,8 @@ void runServo(int leftSpeed, int rightSpeed)
   if(rightSpeed>90) rightSpeed = 90;
   servo0.write(90+leftSpeed);  
   servo1.write(90-rightSpeed); 
+  //servo0.write(90);  
+  //servo1.write(90);
 }
 
 bool checkIntersection() 
