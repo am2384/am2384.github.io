@@ -69,17 +69,17 @@ reg [18:0] red_count;
 reg [18:0] blue_count;
 reg prev_VGA_VSYNC_NEG;
 wire negege_VGA_VSYNC_NEG;
-reg t1 = 1;
+reg t1;
 reg [9:0] x1;
-reg t2 = 1;
+reg t2;
 reg [9:0] x2;
-reg t3 = 1;
+reg t3;
 reg [9:0] x3;
-reg t4 = 1;
+reg t4;
 reg [9:0] x4;
-reg t5 = 1;
+reg t5;
 reg [9:0] x5;
-reg t6 = 1;
+reg t6;
 reg [9:0] x6;
 
 assign negege_VGA_VSYNC_NEG = prev_VGA_VSYNC_NEG & ~VGA_VSYNC_NEG;
@@ -119,6 +119,13 @@ always @(posedge CLK) begin
 		if(x1> x2 && x2 > x3 && x3 > x4 && x4 > x5 && x5 > x6) RESULT[3:2] <= 2'b00; // triangle
 		else if((x1 > x2 && x2 > x3) && (x6 > x5 && x5 > x4)) RESULT[3:2] <= 2'b01; // diamond
 		else RESULT[3:2] <= 2'b10; // square  
+		t1 <= t1;
+		t2 <= t2;
+		t3 <= t3;
+		t4 <= t4;
+		t5 <= t5;
+		t6 <= t6;
+		
 	end
 	else begin
 		RESULT[0] <= RESULT[0];

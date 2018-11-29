@@ -188,15 +188,15 @@ always @ (posedge c1_sig) begin
 		end
 		
 		
-		// WRITING A RED TRIANGLE  
-//		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
-//		else begin
-//			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
-//			else begin
-//				if((xval <= (88 - (yval-15)/2)) || (xval > (88 + (yval-15)/2))) pixel_data_RGB332 <= WHITE;
-//				else pixel_data_RGB332 <= RED;
-//			end
-//		end
+		//WRITING A RED TRIANGLE  
+		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
+		else begin
+			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
+			else begin
+				if((xval <= (88 - (yval-15)/2)) || (xval > (88 + (yval-15)/2))) pixel_data_RGB332 <= WHITE;
+				else pixel_data_RGB332 <= RED;
+			end
+		end
 //		
 //		// WRITING A RED diamond  
 //		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
