@@ -1,5 +1,7 @@
 #define LOG_OUT 1 // use the log output function
 #define FFT_N 256 // set to 256 point fft
+#define IR_SAMPLES 60
+
 
 //#include <FFT.h> // include the library
 #include <Servo.h>
@@ -14,7 +16,7 @@ int line[5] = {0, 0, 0, 0, 0};
 int walls[3] = {0, 0, 0};
 int error = 0;
 int Kp = 14;
-int originalSpeed = 50;
+int originalSpeed = 60;//origin 50
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int turn = 0;
@@ -28,6 +30,7 @@ int sensorValueLeft;
 int start = 0;
 char node[2];
 int IRcounter=0;
+int temp_Arry[IR_SAMPLES];
 
 // radio
 RF24 radio(9, 10);
@@ -89,6 +92,12 @@ void setup() {
   maze_data[0][0].west = 1;
 
   setup_radio();
+
+  update_walls(&self);
+  set_explored(self.x, self.y, 1);
+  node[0] = self.y * 9 + self.x;
+  node[1] = maze_data[self.x][self.y].c;
+  while(!transmit_radio(node,2)){}
 }
 
 void loop() {
@@ -162,7 +171,7 @@ void loop() {
     if (c_path_depth < path_depth) {
       cmd_intersection();
     } else {
-      if (ids_search()) {
+      while (!ids_search()){} //{
         // path planning debug statements
         Serial.println(ids_search());
         Serial.println(path_depth);
@@ -175,7 +184,7 @@ void loop() {
         }
         c_path_depth = 0;
         cmd_intersection();
-      }
+      //}
     }
     /*
       if(rightSensor() == 0)
@@ -307,7 +316,13 @@ bool transmit_radio(char arr[], int n) {
 
 int frontSensor()
 {
-  sensorValueFront = analogRead(sensorPinFront);
+  long temp = 0;
+  int x;
+  for (x=0; x < IR_SAMPLES; x++){
+    temp += analogRead(sensorPinFront);
+  }
+  sensorValueFront = (int) (temp/IR_SAMPLES);
+  //sensorValueFront = analogRead(sensorPinFront);
   //Serial.println(sensorValueFront);
   if (sensorValueFront < 500) return 0;
   else return 1;
@@ -315,7 +330,12 @@ int frontSensor()
 
 int rightSensor()
 {
-  sensorValueRight = analogRead(sensorPinRight);
+  long temp = 0;
+  int x;
+  for (x=0; x < IR_SAMPLES; x++){
+    temp += analogRead(sensorPinRight);
+  }
+  sensorValueRight = (int) (temp/IR_SAMPLES);
   //Serial.println(sensorValueRight);
   if (sensorValueRight < 200) return 0;
   else return 1;
@@ -323,9 +343,14 @@ int rightSensor()
 
 int leftSensor()
 {
-  sensorValueLeft = analogRead(sensorPinLeft);
+  long temp = 0;
+  int x;
+  for (x=0; x < IR_SAMPLES; x++){
+    temp += analogRead(sensorPinLeft);
+  }
+  sensorValueLeft = (int) (temp/IR_SAMPLES);
   Serial.println(sensorValueLeft);
-  if (sensorValueLeft < 185) return 0;
+  if (sensorValueLeft < 200) return 0;
   return 1;
 }
 
@@ -356,6 +381,14 @@ void update_walls(robot_self_t* t)
       maze_data[t->x][t->y].north = walls[2];
       break;
   }
+  if (t->x == 0)
+    maze_data[t->x][t->y].west = 1;
+  if (t->y == 0)
+    maze_data[t->x][t->y].north = 1;
+  if (t->x == 8)
+    maze_data[t->x][t->y].east = 1;
+  if (t->y == 8)
+    maze_data[t->x][t->y].south = 1;
 }
 
 void make180turn()
@@ -477,7 +510,7 @@ void mydelay(int count)
 }
 
 void turnLeftSweep() {
-  runServo(-30, 50);
+  runServo(-35, 50);//origin(-30,50)
   delay(900);
   runServo(10, 10);
   delay(300);
