@@ -1,18 +1,20 @@
 `define SCREEN_WIDTH 176
 `define SCREEN_HEIGHT 144
-`define DEBUG 0
+//`define DEBUG 1
+//`define LED_ON 1
 ///////* DON'T CHANGE THIS PART *///////
 module DE0_NANO(
 	CLOCK_50,
 	GPIO_0_D,
 	GPIO_1_D,
-`ifndef DEBUG
+`ifdef LED_ON
 	KEY,
 	LED //SHOULD BE REMOVED
 `else
 	KEY
 `endif
 );
+
 
 //=======================================================
 //  PARAMETER declarations
@@ -40,11 +42,21 @@ output 		    [33:0]		GPIO_0_D;
 input 		    [33:20]		GPIO_1_D;
 input 		     [1:0]		KEY;
 
-`ifndef DEBUG
+
+`ifdef LED_ON
 output		     [7:0]		LED; 
+assign LED[3] = RESULT[3];
+assign LED[2] = RESULT[2];
+assign LED[1] = RESULT[1];
 assign LED[0] = RESULT[0];
-assign LED[1] = ~RESULT[0];
+//assign LED[0] = RESULT[0] & RESULT[1]; // RED
+//assign LED[1] = ~RESULT[0]  & RESULT[1];
+////
+//assign LED[4] = ~RESULT[3] & ~RESULT[2]; // 2'b00 triangle
+//assign LED[6] = RESULT[3] & ~RESULT[2] ; // diamond 2'b01
+//assign LED[5] = ~RESULT[3] & RESULT[2] ; // square 2'b01
 `endif
+
 
 ///// PIXEL DATA /////
 reg [7:0]	pixel_data_RGB332;
@@ -135,8 +147,11 @@ IMAGE_PROCESSOR proc(
 	.VGA_PIXEL_Y(VGA_PIXEL_Y),
 	.VGA_VSYNC_NEG(VGA_VSYNC_NEG),
 	.VGA_READ_MEM_EN(VGA_READ_MEM_EN),
-	.RESULT({GPIO_0_D[14],GPIO_0_D[12],GPIO_0_D[31],GPIO_0_D[33]})
-	//.RESULT(RESULT)
+`ifndef LED_ON
+	.RESULT({GPIO_0_D[27],GPIO_0_D[29],GPIO_0_D[31],GPIO_0_D[33]})
+`else
+	.RESULT(RESULT)
+`endif
 );
 
 
@@ -189,21 +204,21 @@ always @ (posedge c1_sig) begin
 		
 		
 		//WRITING A RED TRIANGLE  
-		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
-		else begin
-			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
-			else begin
-				if((xval <= (88 - (yval-15)/2)) || (xval > (88 + (yval-15)/2))) pixel_data_RGB332 <= WHITE;
-				else pixel_data_RGB332 <= RED;
-			end
-		end
+//		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
+//		else begin
+//			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
+//			else begin
+//				if((xval <= (88 - (yval-15)/2)) || (xval > (88 + (yval-15)/2))) pixel_data_RGB332 <= WHITE;
+//				else pixel_data_RGB332 <= RED;
+//			end
+//		end
 //		
 //		// WRITING A RED diamond  
 //		if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
 //		else begin
 //			if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
 //			else begin
-//				if(yval <= 57) begin
+//				if(yval <= 72) begin
 //					if((xval <= (88 - (yval-15))) || (xval > (88 + (yval-15)))) pixel_data_RGB332 <= WHITE;
 //					else pixel_data_RGB332 <= RED;
 //				end
@@ -280,7 +295,7 @@ end
 
 // input to pixel data
 
-//wire start_toggle;
+wire start_toggle;
 
 
 
@@ -435,25 +450,29 @@ always @ (posedge PCLK) begin
 		prev_HREF <= HREF; 
 	
 		if(VSYNC) begin 
-			WRITE_ADDRESS <= 0;
-			row_counter <= 0;
-		    col_counter <= 0;
+			WRITE_ADDRESS = 0;
+			row_counter = 0;
+		    col_counter = 0;
 		end
 		else if(toggle && HREF) begin 
-			if (col_counter == 175) col_counter <= col_counter;
-		   else col_counter <= col_counter + 1;   
-			WRITE_ADDRESS <= row_counter * 176 + col_counter;
+			if (col_counter == 175) col_counter = col_counter;
+		   else col_counter = col_counter + 1;   
+			WRITE_ADDRESS = row_counter * 176 + col_counter;
 		end
 		else if(res) begin // negative edge of HREF
-		   col_counter <= 0;
-			if (row_counter == 143) row_counter <= row_counter;
-			else row_counter <= row_counter + 1;
+		   col_counter = 0;
+			if (row_counter == 143) row_counter = row_counter;
+			else row_counter = row_counter + 1;
 		end
 		else begin
-			WRITE_ADDRESS <= WRITE_ADDRESS;
-			col_counter <= col_counter;
-			row_counter <= row_counter;
+			WRITE_ADDRESS = WRITE_ADDRESS;
+			col_counter = col_counter;
+			row_counter = row_counter;
 		end
+		
+		
+		
+		
       
 		
 			
