@@ -50,7 +50,9 @@ void setup() {
   radio.openReadingPipe(1,pipes[0]);
   
   radio.startListening();
-  Serial.println("0,2,north=true,east=true,west=true");
+
+  //default original
+  //Serial.println("0,0,north=true,west=true");
   
 }
 
