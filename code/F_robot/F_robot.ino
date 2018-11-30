@@ -13,7 +13,7 @@ Servo servo1;  // create servo object for the right servo
 int line[5] = {0, 0, 0, 0, 0};
 int walls[3] = {0, 0, 0};
 int error = 0;
-int Kp = 12;
+int Kp = 14;
 int originalSpeed = 50;
 int motorSpeedL = 0;
 int motorSpeedR = 0;
@@ -27,9 +27,10 @@ int sensorPinLeft = A4;
 int sensorValueLeft;
 int start = 0;
 char node[2];
+int IRcounter=0;
 
 // radio
-RF24 radio(9,10);
+RF24 radio(9, 10);
 const uint64_t pipes[2] = { 0x000000003CLL, 0x000000003DLL };
 
 typedef struct {
@@ -72,8 +73,8 @@ unsigned int path_depth = 0;
 void setup() {
   //Serial.begin(115200);
   Serial.begin(9600);
-  servo0.attach(3,1300, 1700);  // attaches the servo on pin 5 to the servo object
-  servo1.attach(5,1300, 1700);  // attaches the servo on pin 6 to the servo object
+  servo0.attach(3, 1300, 1700); // attaches the servo on pin 5 to the servo object
+  servo1.attach(5, 1300, 1700); // attaches the servo on pin 6 to the servo object
   pinMode(6, INPUT);
   pinMode(8, INPUT);
   pinMode(2, INPUT);
@@ -86,36 +87,50 @@ void setup() {
   set_explored(0, 0, 1);
   maze_data[0][0].north = 1;
   maze_data[0][0].west = 1;
-  
+
   setup_radio();
 }
 
-void loop() {  
-  /*if(start == 0)
-  {
-    while(audio() == 0)
-    {
-      Serial.println("No tone");
-    }
-    start = 1;
-  }*/
-  
-//  if(readIR()==1)
+void loop() {
+//  if (start == 0)
 //  {
-//    Serial.println("IR Hat Detected");
-//    make180turn();
-//  } 
-//  else
-//  {
-//    Serial.println("");
+//    while (audio() == 0)
+//    {
+//      //Serial.println("No tone");
+//      if (readIR() == 1)
+//      {
+//        IRcounter++;
+//      }
+//      else
+//      {
+//        IRcounter = 0;
+//        Serial.println("");
+//      }
+//      if(IRcounter>3){
+//        Serial.println("IR Hat Detected");
+//        //make 180 turn
+//        IRcounter = 0;
+//      }
+//    }
+//    start = 1;
 //  }
 
-  //leftSensor();
+/*  if (readIR() == 1)
+  {
+    Serial.println("IR Hat Detected");
+    make180turn();
+  }
+  else
+  {
+    //Serial.println("");
+  }*/
+
+  leftSensor();
 
   if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
-  } 
+  }
   else // we are at an intersection
   {
     Serial.println("Intersection");
@@ -124,10 +139,10 @@ void loop() {
     c_path_depth++;
     update_walls(&self);
     set_explored(self.x, self.y, 1);
-    node[0] = self.y*9 + self.x;
+    node[0] = self.y * 9 + self.x;
     node[1] = maze_data[self.x][self.y].c;
-    //while(!transmit_radio(node,2)){}
-    
+    while(!transmit_radio(node,2)){}
+
     // A bunch of debug serial prints
     Serial.print(" North:");
     Serial.print(maze_data[self.x][self.y].north);
@@ -144,16 +159,16 @@ void loop() {
     Serial.print(" Dir:");
     Serial.println(self.dir);
 
-    if (c_path_depth < path_depth){
+    if (c_path_depth < path_depth) {
       cmd_intersection();
     } else {
-      if (ids_search()){
+      if (ids_search()) {
         // path planning debug statements
         Serial.println(ids_search());
         Serial.println(path_depth);
         Serial.println("pos");
         int n;
-        for (n = 0; n < path_depth; n++){
+        for (n = 0; n < path_depth; n++) {
           Serial.println(x_pos(test_path[n]));
           Serial.println(y_pos(test_path[n]));
           Serial.println("");
@@ -163,23 +178,23 @@ void loop() {
       }
     }
     /*
-    if(rightSensor() == 0)
-    { 
+      if(rightSensor() == 0)
+      {
       turnRightSweep();
       rec_right_turn(&self);
-    } 
-    else if(frontSensor() == 1) 
-    {
+      }
+      else if(frontSensor() == 1)
+      {
       turnLeftSweep();
       rec_left_turn(&self);
-    }
-    else
-    {
+      }
+      else
+      {
       PIDControl();
       int s_time = millis();
       while (s_time + 100 > millis())
         PIDControl();
-    }
+      }
     */
   }
 }
@@ -189,17 +204,13 @@ void loop() {
 ////////////////////////////////////////////////////////
 
 void cmd_intersection() {
-  if (turns[c_path_depth] == 0){
+  if (turns[c_path_depth] == 0) {
     PIDControl();
-    unsigned long s_time = millis();
-    Serial.println("begin");
-    while (s_time + 350 > millis()){
+    unsigned long s_time = millis();;
+    while (s_time + 350 > millis()) {
       PIDControl();
-      if(checkIntersection())
-        Serial.println(millis());
-      }
-    Serial.println("end");
-  } else if (turns[c_path_depth] == 1){
+    }
+  } else if (turns[c_path_depth] == 1) {
     turnRightSweep();
     rec_right_turn(&self);
   } else if (turns[c_path_depth] == 2) {
@@ -215,7 +226,7 @@ void setup_radio(void) {
   radio.begin();
 
   // optionally, increase the delay between retries & # of retries
-  radio.setRetries(15,15);
+  radio.setRetries(15, 15);
   radio.setAutoAck(true);
   // set the channel
   radio.setChannel(0x50);
@@ -235,7 +246,7 @@ void setup_radio(void) {
   // Open 'our' pipe for writing
   // Open the 'other' pipe for reading, in position #1 (we can have up to 5 pipes open for reading)
   radio.openWritingPipe(pipes[0]);
-  radio.openReadingPipe(1,pipes[1]);
+  radio.openReadingPipe(1, pipes[1]);
 
   // Start listening
   radio.startListening();
@@ -249,15 +260,15 @@ bool transmit_radio(char arr[], int n) {
   //  Serial.write("sending");
   //  Serial.write("\n");
   //  Serial.print((uint8_t) arr[0]);
-  //  Serial.write("  ");
+  //  Serial.write("  ");m m 
   //  Serial.print((uint8_t) arr[1]);
   //  Serial.write("\n");
   bool ok = radio.write(arr, n);
 
-  if (ok){}
+  if (ok) {}
   //    printf("ok...");
   else {
-  //    printf("failed.\n\r");
+    //    printf("failed.\n\r");
     return false;
   }
 
@@ -274,7 +285,7 @@ bool transmit_radio(char arr[], int n) {
   // Describe the results
   if ( timeout )
   {
-  //    printf("Failed, response timed out.\n\r");
+    //    printf("Failed, response timed out.\n\r");
     return false;
   }
   else
@@ -284,12 +295,12 @@ bool transmit_radio(char arr[], int n) {
     radio.read(ret_val, n);
 
     // Spew it
-  //    Serial.write("recieved");
-  //    Serial.write("\n");
-  //    Serial.print((uint8_t) ret_val[0]);
-  //    Serial.write("  ");
-  //    Serial.print((uint8_t) ret_val[1]);
-  //    Serial.write("\n");
+    //    Serial.write("recieved");
+    //    Serial.write("\n");
+    //    Serial.print((uint8_t) ret_val[0]);
+    //    Serial.write("  ");
+    //    Serial.print((uint8_t) ret_val[1]);
+    //    Serial.write("\n");
     return true;
   }
 }
@@ -298,7 +309,7 @@ int frontSensor()
 {
   sensorValueFront = analogRead(sensorPinFront);
   //Serial.println(sensorValueFront);
-  if(sensorValueFront<500) return 0;
+  if (sensorValueFront < 500) return 0;
   else return 1;
 }
 
@@ -306,7 +317,7 @@ int rightSensor()
 {
   sensorValueRight = analogRead(sensorPinRight);
   //Serial.println(sensorValueRight);
-  if(sensorValueRight<200) return 0;
+  if (sensorValueRight < 200) return 0;
   else return 1;
 }
 
@@ -314,7 +325,7 @@ int leftSensor()
 {
   sensorValueLeft = analogRead(sensorPinLeft);
   Serial.println(sensorValueLeft);
-  if (sensorValueLeft<180) return 0;
+  if (sensorValueLeft < 185) return 0;
   return 1;
 }
 
@@ -323,7 +334,7 @@ void update_walls(robot_self_t* t)
   walls[0] = leftSensor();
   walls[1] = frontSensor();
   walls[2] = rightSensor();
-  switch(t->dir){
+  switch (t->dir) {
     case 0:
       maze_data[t->x][t->y].west = walls[0];
       maze_data[t->x][t->y].north = walls[1];
@@ -349,103 +360,104 @@ void update_walls(robot_self_t* t)
 
 void make180turn()
 {
-    runServo(50, -30);
-    delay(2000);
-    runServo(10, 10);
-    delay(400);
+  runServo(50, -30);
+  delay(2000);
+  runServo(10, 10);
+  delay(400);
 }
 
 void make180turn2()
 {
-   while(turn<1250)
-   {
-     runServo(60,-20);
-     Serial.println("Turning Turning");
-     turn++;
-   }
-   turn=0;
+  while (turn < 1250)
+  {
+    runServo(60, -20);
+    Serial.println("Turning Turning");
+    turn++;
+  }
+  turn = 0;
 }
 
 /*
-int readIR(){
-    //cli();  // UDRE interrupt slows this way down on arduino1.0
-    byte adcsra_temp = ADCSRA;
-    byte adcmux_temp = ADMUX;
-    byte didr0_temp = DIDR0;
-    TIMSK0 = 0; // turn off timer0 for lower jitter
-    ADCSRA = 0xe5; // set the adc to free running mode
-    ADMUX = 0x40; // use adc0 //required for fft!
-    DIDR0 = 0x01; // turn off the digital input for adc0
-    for (int i = 0 ; i < 512 ; i += 2) 
-    { // save 256 samples
-      while(!(ADCSRA & 0x10)); // wait for adc to be ready
-      ADCSRA = 0xf5; // restart adc
-      byte m = ADCL; // fetch adc data
-      byte j = ADCH;
-      int k = (j << 8) | m; // form into an int
-      k -= 0x0200; // form into a signed int
-      k <<= 6; // form into a 16b signed int
-      fft_input[i] = k; // put real data into even bins
-      fft_input[i+1] = 0; // set odd bins to 0
-    }
-    fft_window(); // window the data for better frequency response
-    fft_reorder(); // reorder the data before doing the fft
-    fft_run(); // process the data in the fft
-    fft_mag_log(); // take the output of the fft
-    TIMSK0 = 1; // turn on timer0 for lower jitter
-    ADCSRA = adcsra_temp; // set the adc to free running mode
-    ADMUX = adcmux_temp; // use adc0 //required for fft!
-    DIDR0 = didr0_temp; // turn off the digital input for adc0
-    //sei();
-    Serial.print(fft_log_out[40]);
-    Serial.print(" ");
-    Serial.print(fft_log_out[41]);
-    Serial.print(" ");
-    Serial.println(fft_log_out[42]);
-    if(fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120)
-    {
-      return 1;
-    }
-    else{
-      return 0;
-    } 
+int readIR() {
+  //cli();  // UDRE interrupt slows this way down on arduino1.0
+  byte adcsra_temp = ADCSRA;
+  byte adcmux_temp = ADMUX;
+  byte didr0_temp = DIDR0;
+  TIMSK0 = 0; // turn off timer0 for lower jitter
+  ADCSRA = 0xe5; // set the adc to free running mode
+  ADMUX = 0x40; // use adc0 //required for fft!
+  DIDR0 = 0x01; // turn off the digital input for adc0
+  for (int i = 0 ; i < 512 ; i += 2)
+  { // save 256 samples
+    while (!(ADCSRA & 0x10)); // wait for adc to be ready
+    ADCSRA = 0xf5; // restart adc
+    byte m = ADCL; // fetch adc data
+    byte j = ADCH;
+    int k = (j << 8) | m; // form into an int
+    k -= 0x0200; // form into a signed int
+    k <<= 6; // form into a 16b signed int
+    fft_input[i] = k; // put real data into even bins
+    fft_input[i + 1] = 0; // set odd bins to 0
+  }
+  fft_window(); // window the data for better frequency response
+  fft_reorder(); // reorder the data before doing the fft
+  fft_run(); // process the data in the fft
+  fft_mag_log(); // take the output of the fft
+  TIMSK0 = 1; // turn on timer0 for lower jitter
+  ADCSRA = adcsra_temp; // set the adc to free running mode
+  ADMUX = adcmux_temp; // use adc0 //required for fft!
+  DIDR0 = didr0_temp; // turn off the digital input for adc0
+  //sei();
+  //Serial.print(fft_log_out[40]);
+  //Serial.print(" ");
+  //Serial.print(fft_log_out[41]);
+  //Serial.print(" ");
+  //Serial.println(fft_log_out[42]);
+  if (fft_log_out[39] > 120 || fft_log_out[40] > 120 || fft_log_out[41] > 120)
+  {
+    return 1;
+  }
+  else {
+    return 0;
+  }
 }
 */
 
 void PIDControl()
 {
   error = IRmeasurements();
-  motorSpeedL = -(Kp*error) + originalSpeed; 
-  motorSpeedR = +(Kp*error) + originalSpeed;
+  motorSpeedL = -(Kp * error) + originalSpeed;
+  motorSpeedR = +(Kp * error) + originalSpeed;
 
-  runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left 
+  runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left
 }
+
 /*
 int audio()
 {
-      cli();
-    for (int i = 0 ; i < 512 ; i += 2) {
-      fft_input[i] = analogRead(A2); // <-- NOTE THIS LINE
-      fft_input[i+1] = 0;
-    }
-    fft_window();
-    fft_reorder();
-    fft_run();
-    fft_mag_log();
-    sei();
+  cli();
+  for (int i = 0 ; i < 512 ; i += 2) {
+    fft_input[i] = analogRead(A2); // <-- NOTE THIS LINE
+    fft_input[i + 1] = 0;
+  }
+  fft_window();
+  fft_reorder();
+  fft_run();
+  fft_mag_log();
+  sei();
   //    Serial.println("start");
   //    for (byte i = 0 ; i < FFT_N/2 ; i++) {
   //      Serial.println(fft_log_out[i]);
   //    }
 
-    if(fft_log_out[19] > 65 || fft_log_out[20] > 65 || fft_log_out[21] > 65)
-    {
-      return 1;
-    }
-    else{
-      return 0;
-    }
-  
+  if (fft_log_out[19] > 65 || fft_log_out[20] > 65 || fft_log_out[21] > 65)
+  {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+
 }*/
 
 void turnRightSweep()
@@ -458,9 +470,9 @@ void turnRightSweep()
 
 void mydelay(int count)
 {
-  while(count > 0)
+  while (count > 0)
   {
-    count-= 1;
+    count -= 1;
   }
 }
 
@@ -473,29 +485,29 @@ void turnLeftSweep() {
 
 void runServo(int leftSpeed, int rightSpeed)
 {
-  if(leftSpeed>90) leftSpeed = 90;
-  if(rightSpeed>90) rightSpeed = 90;
-  servo0.write(90+leftSpeed);  
-  servo1.write(90-rightSpeed); 
-  //servo0.write(90);  
-  //servo1.write(90);
+  if (leftSpeed > 90) leftSpeed = 90;
+  if (rightSpeed > 90) rightSpeed = 90;
+  servo0.write(90+leftSpeed);
+  servo1.write(90-rightSpeed);
+//  servo0.write(90);
+//  servo1.write(90);
 }
 
-bool checkIntersection() 
+bool checkIntersection()
 {
   line[0] = !(digitalRead(6));
   line[1] = !(digitalRead(8));
   line[2] = !(digitalRead(2));
   line[3] = !(digitalRead(4));
   line[4] = !(digitalRead(7));
-  
-//  Serial.print(line[0]);
-//  Serial.print(line[1]);
-//  Serial.print(line[2]);
-//  Serial.print(line[3]);
-//  Serial.print(line[4]);
-//  Serial.println("");
-  if ((line[0]+line[1]+line[2]+line[3]+line[4])>=4) return 1;
+
+//    Serial.print(line[0]);
+//    Serial.print(line[1]);
+//    Serial.print(line[2]);
+//    Serial.print(line[3]);
+//    Serial.print(line[4]);
+//    Serial.println("");
+  if ((line[0] + line[1] + line[2] + line[3] + line[4]) >= 4) return 1;
   return 0;
   //return (line[0] && line[1] && line[2] && line[3] && line[4]);
 }
@@ -507,35 +519,35 @@ int IRmeasurements()
   line[2] = !(digitalRead(2));
   line[3] = !(digitalRead(4));
   line[4] = !(digitalRead(7));
-  //    0   1   2   3   4 
-  if(line[2] == 1 && line[0] == 0 && line[1] == 0 && line[3] == 0 && line[4] == 0)  ///////////////// 2 only straight 
+  //    0   1   2   3   4
+  if (line[2] == 1 && line[0] == 0 && line[1] == 0 && line[3] == 0 && line[4] == 0) ///////////////// 2 only straight
   {
     error = 0;
   } else if (line[1] == 1 && line[2] == 1 && line[0] == 0  && line[3] == 0 && line[4] == 0) ///////////// 1 and 2  = 1xleft
   {
     error = +1;
-  } else if (line[2] == 1 && line[3] == 1 && line[0] == 0  && line[1] == 0 && line[4] == 0) ////////////  2 and 3 =  1xright 
+  } else if (line[2] == 1 && line[3] == 1 && line[0] == 0  && line[1] == 0 && line[4] == 0) ////////////  2 and 3 =  1xright
   {
     error = -1;
-  }else if(line[1] == 1 && line[0] == 0 &&  line[2] == 0  && line[3] == 0 && line[4] == 0) ///////////// 1 only =  2xleft 
+  } else if (line[1] == 1 && line[0] == 0 &&  line[2] == 0  && line[3] == 0 && line[4] == 0) ///////////// 1 only =  2xleft
   {
     error = +2;
-  } else if(line[3] == 1 && line[0] == 0 && line[1] == 0  && line[2] == 0 && line[4] == 0) /////////// 3 only =  2xright 
+  } else if (line[3] == 1 && line[0] == 0 && line[1] == 0  && line[2] == 0 && line[4] == 0) /////////// 3 only =  2xright
   {
     error = - 2;
-  } else if(line[0] == 1 && line[1] == 1 && line[2] == 0  && line[3] == 0 && line[4] == 0) //////////     0 and 1 =  3x left  
+  } else if (line[0] == 1 && line[1] == 1 && line[2] == 0  && line[3] == 0 && line[4] == 0) //////////     0 and 1 =  3x left
   {
     error = +3;
-  } else if (line[3] == 1 && line[4] == 1 && line[0] == 0  && line[1] == 0 && line[2] == 0) ////////   3 and 4 =  3x right 
+  } else if (line[3] == 1 && line[4] == 1 && line[0] == 0  && line[1] == 0 && line[2] == 0) ////////   3 and 4 =  3x right
   {
     error = -3;
-  } else if (line[0] == 1 && line[1] == 0 && line[2] == 0  && line[3] == 0 && line[4] == 0) /////    0 only = 4x left 
+  } else if (line[0] == 1 && line[1] == 0 && line[2] == 0  && line[3] == 0 && line[4] == 0) /////    0 only = 4x left
   {
     error = +4;
-  } else if(line[4] == 1 && line[0] == 0 && line[1] == 0  && line[2] == 0 && line[3] == 0) ////// 4 only = 4x right 
+  } else if (line[4] == 1 && line[0] == 0 && line[1] == 0  && line[2] == 0 && line[3] == 0) ////// 4 only = 4x right
   {
     error = - 4;
-  } 
+  }
   return error;
 }
 
@@ -547,32 +559,32 @@ void stopServos()
 // Go straight
 void goStraight()
 {
-   runServo(90, 90);
+  runServo(90, 90);
 }
 
 void inc_pos(robot_self_t* t)
 {
-  if(t->dir == 0) t->y--;
-  else if(t->dir == 1) t->x++;
-  else if(t->dir == 2) t->y++;
-  else if(t->dir == 3) t->x--;
+  if (t->dir == 0) t->y--;
+  else if (t->dir == 1) t->x++;
+  else if (t->dir == 2) t->y++;
+  else if (t->dir == 3) t->x--;
 }
 
 void rec_left_turn(robot_self_t* t)
 {
-  t->dir = (t->dir-1);
-  if(t->dir == -1)
+  t->dir = (t->dir - 1);
+  if (t->dir == -1)
     t->dir = 3;
 }
 
 void rec_right_turn(robot_self_t* t)
 {
-  t->dir = (t->dir+1) % 4;
+  t->dir = (t->dir + 1) % 4;
 }
 
 void rec_u_turn(robot_self_t* t)
 {
-  t->dir = (t->dir+2) % 4;
+  t->dir = (t->dir + 2) % 4;
 }
 
 //////////////////////////////////////
@@ -580,7 +592,7 @@ void rec_u_turn(robot_self_t* t)
 //////////////////////////////////////
 
 int int_pos(int x, int y) {
-  return x*9 + y;
+  return x * 9 + y;
 }
 
 int x_pos(int pos) {
@@ -592,18 +604,18 @@ int y_pos(int pos) {
 }
 
 bool check_explored(char x, char y) {
-  unsigned char pos = int_pos(x,y);
+  unsigned char pos = int_pos(x, y);
   if (pos > 81)
     return true;
-  return explored[pos/8] & (1<<(pos%8));
+  return explored[pos / 8] & (1 << (pos % 8));
 }
 
 void set_explored(char x, char y, bool e) {
-  unsigned char pos = int_pos(x,y);
+  unsigned char pos = int_pos(x, y);
   if (pos > 81)
     return;
   if (e)
-    explored[pos/8] |= (1<<(pos%8));
+    explored[pos / 8] |= (1 << (pos % 8));
 }
 
 bool ids_search(void) {
@@ -613,7 +625,7 @@ bool ids_search(void) {
   char n = 1;
   n_path = true;
   path_depth = 0;
-  while (!ids_recursive( &rTester, n)){
+  while (!ids_recursive( &rTester, n)) {
     if (n > 82 || n_path)
       return false;
     n_path = true;
@@ -625,7 +637,7 @@ bool ids_search(void) {
 
 int np_checker(robot_self_t* rt, char turn_r) {
   turn_r += rt->dir;
-  switch (turn_r%4) {
+  switch (turn_r % 4) {
     case 0:
       return !(maze_data[rt->x][rt->y].north);
     case 1:
@@ -642,7 +654,7 @@ int check_old_path(robot_self_t* rt) {
   int pos = int_pos(rt->x, rt->y);
   if (pos == int_pos(self.x, self.y))
     return 1;
-  for (x = 0; x<path_depth-1; x++){
+  for (x = 0; x < path_depth - 1; x++) {
     if (test_path[x] == pos)
       return 1;
   }
@@ -652,11 +664,11 @@ int check_old_path(robot_self_t* rt) {
 //TODO: Have function update path depth and test_path[]
 bool ids_recursive(robot_self_t* rt, int r_depth) {
   /*Serial.println("recursive!");
-  Serial.println(rt->x);
-  Serial.println(rt->y);*/
+    Serial.println(rt->x);
+    Serial.println(rt->y);*/
   if (!check_explored(rt->x, rt->y))
     return true;
-  if (r_depth < 1){
+  if (r_depth < 1) {
     n_path = false;
     return false;
   }
@@ -665,15 +677,15 @@ bool ids_recursive(robot_self_t* rt, int r_depth) {
   int o_y = rt->y;
   int o_dir = rt->dir;
   int d;
-  for (d=0; d<4; d++){
-    if (np_checker(rt,d)){
+  for (d = 0; d < 4; d++) {
+    if (np_checker(rt, d)) {
       //move tester
       rt->dir = (rt->dir + d) % 4;
       inc_pos(rt);
       test_path[path_depth] = int_pos(rt->x, rt->y);
       turns[path_depth] = d;
       path_depth++;
-      if (check_old_path(rt)){
+      if (check_old_path(rt)) {
         path_depth--;
         //search in that dir didn't work so try next dir
         rt->x = o_x;
@@ -681,7 +693,7 @@ bool ids_recursive(robot_self_t* rt, int r_depth) {
         rt->dir = o_dir;
         continue;
       }
-      if(ids_recursive(rt,r_depth - 1))
+      if (ids_recursive(rt, r_depth - 1))
         return true;
       path_depth--;
       //search in that dir didn't work so try next dir
