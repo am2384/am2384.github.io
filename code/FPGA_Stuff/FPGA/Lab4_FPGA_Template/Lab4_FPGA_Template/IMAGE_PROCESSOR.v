@@ -59,29 +59,27 @@ wire blue;
 
 
 // RGB332 => RRR_GGG_BB
-assign red = (PIXEL_IN[7]==1 || (PIXEL_IN[6]==1 && PIXEL_IN[5]==1) ) && PIXEL_IN[2]==0;
-assign blue = PIXEL_IN[7]==0 && ( PIXEL_IN[1]==1 );
-assign white = (PIXEL_IN[7]==1 && PIXEL_IN[4]==1 && PIXEL_IN[1]==1) || (~red && ~blue);  
+//assign red = (PIXEL_IN[7]==1 || (PIXEL_IN[6]==1 && PIXEL_IN[5]==1) ) && PIXEL_IN[2]==0;
+//assign blue = PIXEL_IN[7]==0 && ( PIXEL_IN[1]==1 );
+//assign white = (PIXEL_IN[7]==1 && PIXEL_IN[4]==1 && PIXEL_IN[1]==1) || (~red && ~blue);  
 
-
+assign white = PIXEL_IN[7] & PIXEL_IN[4] & PIXEL_IN[2];
+assign blue = (PIXEL_IN[1] == 0) & ~ white;
+assign red =  (PIXEL_IN[1]) & ~white;
 
 reg [18:0] red_count;
 reg [18:0] blue_count;
 reg prev_VGA_VSYNC_NEG;
 wire negege_VGA_VSYNC_NEG;
-reg t1;
-reg [9:0] x1;
-reg t2;
-reg [9:0] x2;
-reg t3;
-reg [9:0] x3;
-reg t4;
-reg [9:0] x4;
-reg t5;
-reg [9:0] x5;
-reg t6;
-reg [9:0] x6;
 
+
+
+reg [9:0] l1;
+reg [9:0] l2;
+reg [9:0] l3;
+reg [9:0] l4;
+reg [9:0] l5;
+reg [9:0] l6;
 assign negege_VGA_VSYNC_NEG = prev_VGA_VSYNC_NEG & ~VGA_VSYNC_NEG;
 
 /////////////////////////////////////////////////// PREVIOUS CODE ////////////
@@ -114,17 +112,12 @@ always @(posedge CLK) begin
 	prev_VGA_VSYNC_NEG <= VGA_VSYNC_NEG;
 	
 	if(negege_VGA_VSYNC_NEG) begin
-		RESULT[0] <= (red_count > blue_count); // UPDATE COLOR WHEN A FRAME ENDS
+		RESULT[0] <= (red_count > blue_count); // UPDATE COLOR WHEN A FRAME ENDS  CHANGE THAT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		RESULT[1] <= ((red_count + blue_count) > 3/5*176 * 144); // 0 for WHITE => 0 means absence of treasure
-		if(x1> x2 && x2 > x3 && x3 > x4 && x4 > x5 && x5 > x6) RESULT[3:2] <= 2'b00; // triangle
-		else if((x1 > x2 && x2 > x3) && (x6 > x5 && x5 > x4)) RESULT[3:2] <= 2'b01; // diamond
+		if((l1 <  (l2-20)) && (l2 <  (l3-20))) RESULT[3:2] <= 2'b00; // triangle
+		else if((l1 < (l2-5)) && ((l2-5) > l3)) RESULT[3:2] <= 2'b01; // diamond
 		else RESULT[3:2] <= 2'b10; // square  
-		t1 <= t1;
-		t2 <= t2;
-		t3 <= t3;
-		t4 <= t4;
-		t5 <= t5;
-		t6 <= t6;
+	
 		
 	end
 	else begin
@@ -136,7 +129,10 @@ always @(posedge CLK) begin
 	// Color Detection Code 
 	if(~VGA_VSYNC_NEG) begin
 		red_count <= 0;
-		blue_count <= 0;
+		blue_count <= 0;	
+		l1 = 0;
+		l2 = 0;
+		l3 = 0;
 	end
 	else begin
 		if (red && VGA_READ_MEM_EN) red_count <= red_count + 1'b1;
@@ -150,70 +146,31 @@ always @(posedge CLK) begin
 	// Shape Detection Code
 	if(VGA_VSYNC_NEG && VGA_READ_MEM_EN) begin
 	
-		if(VGA_PIXEL_Y== 45) begin
-			if((red || blue) && t1) begin
-					x1 <= VGA_PIXEL_X;
-					t1 <= ~t1;
+		if(VGA_PIXEL_Y== 36) begin
+			if((red || blue)) begin
+			l1 <= l1 + 1;
 			end
 		end
-		else if(VGA_PIXEL_Y == 50) begin
-			if((red || blue) && t2) begin
-				x2 <= VGA_PIXEL_X;
-				t2 <= ~t2;
+		else if(VGA_PIXEL_Y == 72) begin
+			if((red || blue)) begin
+				l2 <= l2 + 1;
 			end
 		end
-		else if(VGA_PIXEL_Y == 55) begin
-			if((red || blue) && t3) begin
-				x3 <= VGA_PIXEL_X;
-				t3 <= ~t3;
-			end
-		end
-		else if(VGA_PIXEL_Y == 86) begin
-			if((red || blue) && t4) begin
-				x4 <= VGA_PIXEL_X;
-				t4 <= ~x4;
-			end
-		end
-		else if(VGA_PIXEL_Y == 91) begin
-			if((red || blue) && t5) begin
-				x5 <= VGA_PIXEL_X;
-				t5 <= ~t5;
-			end
-		end
-		else if(VGA_PIXEL_Y == 96) begin
-			if((red || blue) && t6) begin
-				x6 <= VGA_PIXEL_X;
-				t6 <= ~t6;
+		else if(VGA_PIXEL_Y == 108) begin
+			if((red || blue)) begin
+				l3 <= l3 + 1;
 			end
 		end
 		else begin
-			x1 <= x1;
-			x2 <= x2;
-			x3 <= x3;
-			x4 <= x4;
-			x5 <= x5;
-			x6 <= x6;
-			t1 <= t1;
-			t2 <= t2;
-			t3 <= t3;
-			t4 <= t4;
-			t5 <= t5;
-			t6 <= t6;
+		l1 <= l1;
+		l2 <= l2;
+		l3 <= l3;
 		end
 	end
 	else begin
-		x1 <= x1;
-		x2 <= x2;
-		x3 <= x3;
-		x4 <= x4;
-		x5 <= x5;
-		x6 <= x6;
-		t1 <= t1;
-		t2 <= t2;
-		t3 <= t3;
-		t4 <= t4;
-		t5 <= t5;
-		t6 <= t6;
+		l1 <= l1;
+		l2 <= l2;
+		l3 <= l3;
 	end
 end
 
