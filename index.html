@@ -1533,12 +1533,15 @@ For the diamond, the code was as follows: </p>
                                   <p align="left">For a square, it was very difficult to detect L1 = L2 = L3 because of noise, square being at an angle, etc. </p>
                                   <p align="left">So instead, we used the following logic. Our code for color and presence detection ran completely independently but in parallel with our code for shape detection. So we could combine information from the two. GIVEN that a treasure was present, the shape was a square if and only if it was not a triangle or a diamond. </p>
                                   <p align="left">Also, you can see that our shape detection code did not take into account the color of the pixels; it simply counted the number of red or blue pixels along 3 lines to figure out the shape, while the color was detected by a separate section of code running in parallel. Decoupling shape, color and treasure detection was useful in debugging. </p>
+                                  <p></p>
                                   <h3>Part 3: Videos of non-Camera Images </h3>
                                   <p align="left">The following videos show our results from doing image processing on our own generated images.</p>
                                   <iframe width="560" height="315" src="https://www.youtube.com/embed/D0FJyYowAHc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                  <p></p>
                                   <h3>Part 4: Videos of Camera Images</h3>
                                   <p align="left">The following videos show our results from doing image processing on images from camera.</p>
                                   <iframe width="560" height="315" src="https://www.youtube.com/embed/LZDrmgz7NyY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                  <p></p>
                                   <h3>Part 5: FPGA and Arduino Code </h3>
                                   <p align="left">Our complete IMAGE_PROCESSOR code is shown below with comments. It outputs a 4-bit RESULT. </p>
                                   <pre><code>assign white = PIXEL_IN[7] & PIXEL_IN[4] & PIXEL_IN[2];
