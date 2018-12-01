@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿ g<!DOCTYPE html>
 <html lang="en">
   <head>
 
@@ -198,7 +198,7 @@
                       </a>
                       <div class="portfolio-caption">
                           <h4>Milestone 4</h4>
-                          <p class="text-muted">Never again</p>
+                          <p class="text-muted">Treasure Detection</p>
                       </div>
                   </div>
               </div>
@@ -1465,14 +1465,189 @@ end</code></pre>
                           <div class="col-lg-8 mx-auto">
                               <div class="modal-body">
                                   <!-- Project Details Go Here -->
-                                  <h2 class="text-uppercase">Coming Soon</h2>
-                                  <p class="item-intro text-muted">Lorem ipsum dolor sit amet consectetur.</p>
-                                  <img class="img-fluid d-block mx-auto" src="img/portfolio/03-full.jpg" alt="">
-                                  <p>Use this area to describe your project. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Est blanditiis dolorem culpa incidunt minus dignissimos deserunt repellat aperiam quasi sunt officia expedita beatae cupiditate, maiores repudiandae, nostrum, reiciendis facere nemo!</p>
+                                  <h2 class="text-uppercase">Milestone 4</h2>
+                                  <h3>Goal</h3>
+                                  <p align="left">In this milestone, we updated the code in the IMAGE_PROCESSOR.v module to detect the presence, color and shape of treasures. </p>
+                                  <h3>Progress From Lab 4</h4>
+                                  <p align="left">At the end of lab 4, we showed our method of detecting the presence and color of a shape. To do that, we counted the number of non-white pixels in each frame, and incremented red_count or blue_count. At the end of the frame (indicated by negative edge on VGA_VSYNC_NEG), we output the color and presence of treasure using 2 bits. </p>
+                                  <p align="left">RESULT[1] is HIGH when a treasure is present.  </p>
+                                  <p align="left">GIVEN that RESULT[1] is HIGH, RESULT[0] is HIGH when treasure is red and LOW when treasure is blue. If RESULT[1] is LOW, RESULT[0] is a ‘Don’t Care’. </p>
+                                  <p align="left">The code for processing the color of an individual pixel in RGB332 format is: </p>
+                                  <pre><code>assign white = PIXEL_IN[7] & PIXEL_IN[4] & PIXEL_IN[2];
+assign blue = (PIXEL_IN[1] == 1) & ~ white;
+assign red =  (PIXEL_IN[1] == 0) & ~white; </pre></code>
+                                  <p align="left">In the video before, we showed that when the camera faces a white wall, it successfully output white which corresponds to no shape. When we put a colored shape before the camera, it successfully outputs the correct red or blue color, indicating a shape is detected.</p>
+                                  <iframe width="560" height="315" src="https://www.youtube.com/embed/8_hdXBKb-Hs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                  <p></p>
+                                  <h3>Part 1: Simulating the Shapes</h3>
+                                  <p align="left">Instead of using camera, we first manually wrote image patterns corresponding to triangle, diamond and square to memory. This enabled us to first test our IMAGE_PROCESSOR code on accurate, noise-free images of treasures. We first expressed WRITE_ADDRESS as WRITE_ADDRESS = 176*y + x, where x and y are the pixel numbers along horizontal and vertical directions respectively. Thinking of x and y as coordinates in the xy plane made it easier for us to use simple coordinate geometry to write the appropriate shapes. The coordinate x took values in the range [0, 175] while y took values in the range [0,143].</p>
+                                  <p align="left">The code for writing a square, triangle and a diamond in color RED is shown below:</p>
+                                  <pre><code>// Square
+if((yval <= 15) || (yval >= 129 )) pixel_data_RGB332 <= WHITE;
+else begin
+    if( (xval <= 31) || (xval >= 145)) pixel_data_RGB332 <= WHITE;
+    else pixel_data_RGB332 <= RED;
+end</code></pre>
+                                  <pre><code>//TRIANGLE
+if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
+else begin
+   if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
+   else begin
+      if((x <= (88 - (y-15)/2)) || (x > (88 + (y-15)/2)))   
+         pixel_data_RGB332  <= WHITE;                                 
+   else pixel_data_RGB332 <= RED;
+   end
+end</code></pre>
+                                  <p align="left">The above code is based on the following figure, showing the relevant coordinates of the triangle:</p>
+                                  <img class="img-fluid d-block mx-auto" src="img/milestones/milestone 4/tr2.JPG" alt="">
+                                  <pre><code>// DIAMOND
+if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
+else begin
+   if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
+   else begin
+       if(y <= 72) begin
+          if((x <= (88 - (y-15))) || (x >= (88 + (y-15))))   
+              pixel_data_RGB332 <= WHITE;
+          else pixel_data_RGB332 <= RED;
+       end
+       else begin
+          if((x <= (88 - (129-y))) || (x >= (88 +(129-y))))
+               pixel_data_RGB332 <= WHITE;
+          else pixel_data_RGB332 <= RED;
+       end    
+   end
+end</code></pre>
+                                  <p align="left">The above code is based on the following figure, showing the relevant coordinates of the diamond:</pre>
+                                  <img class="img-fluid d-block mx-auto" src="img/milestones/milestone 4/diamond.JPG" alt="">
+                                  <h3>Part 2: Image Processing</h3>
+
+                                  <p align="left">Once we had nice, clean shapes as above, we wrote the shape detection code as follows. We sampled the screen along 3 horizontal lines at ¼, ½ and ¾ of the SCREEN_HEIGHT (=144), as shown below by 3 green lines:</pre>
+                                  <p align="left">We can distinguish between triangle, square and diamond by counting the number of red or blue pixels in each line, call them L1, L2 and L3. Clearly, for a triangle, we expect L1 < L2 < L3. For a diamond, we expect L1 < L2 & L2 > L3. For a square, we expect L1 = L2 = L3. IN other words, for a triangle, the slope is positive; for a diamond, the slope changes sign; for a square, the slope is constant with respect to L1, L2 and L3.</p>   
+                                  <img class="img-fluid d-block mx-auto" src="img/milestones/milestone 4/unnamed.jpg" alt="">
+                                  <p align="left">WWith this kind of logic, it was hard to distinguish between a triangle and a slightly tilted square. So instead, we modified the logic for triangle by putting a lower bound on the difference between L1 and L2, and between L2 and L3, so that our code was as follows: </p>
+                                  <pre><code>if( (L1 <  (L2-20)) and (L2 <  (L3-20))) shape = triangle</code></pre>
+                                  <p align="left">Using the above code, in order for a shape to pass for a triangle, it had to show a larger increase in value going from L1 to L2 to L3. A tilted square would not show that large a difference.
+For the diamond, the code was as follows: </p>
+                                  <pre><code>if( (L1 < (L2-5)) and ((L2-5) > L3)) shape = diamond  </code></pre>
+                                  <p align="left">Again, we put a number 5 as the minimum required difference to account for noise and other deviations from ideal behavior, as we would with a real camera. </p> 
+                                  <p align="left">For a square, it was very difficult to detect L1 = L2 = L3 because of noise, square being at an angle, etc. </p>
+                                  <p align="left">So instead, we used the following logic. Our code for color and presence detection ran completely independently but in parallel with our code for shape detection. So we could combine information from the two. GIVEN that a treasure was present, the shape was a square if and only if it was not a triangle or a diamond. </p>
+                                  <p align="left">Also, you can see that our shape detection code did not take into account the color of the pixels; it simply counted the number of red or blue pixels along 3 lines to figure out the shape, while the color was detected by a separate section of code running in parallel. Decoupling shape, color and treasure detection was useful in debugging. </p>
+                                  <h3>Part 3: Videos of non-Camera Images </h3>
+                                  <p align="left">The following videos show our results from doing image processing on our own generated images.</p>
+                                  <iframe width="560" height="315" src="https://www.youtube.com/embed/D0FJyYowAHc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                  <h3>Part 4: Videos of Camera Images</h3>
+                                  <p align="left">The following videos show our results from doing image processing on images from camera.</p>
+                                  <iframe width="560" height="315" src="https://www.youtube.com/embed/LZDrmgz7NyY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                  <h3>Part 5: FPGA and Arduino Code </h3>
+                                  <p align="left">Our complete IMAGE_PROCESSOR code is shown below with comments. It outputs a 4-bit RESULT. </p>
+                                  <pre><code>assign white = PIXEL_IN[7] & PIXEL_IN[4] & PIXEL_IN[2];
+assign blue = (PIXEL_IN[1] == 0) & ~ white;
+assign red =  (PIXEL_IN[1]) & ~white;
+
+assign negege_VGA_VSYNC_NEG = prev_VGA_VSYNC_NEG & ~VGA_VSYNC_NEG;
+
+always @(posedge CLK) begin
+  prev_VGA_VSYNC_NEG <= VGA_VSYNC_NEG;
+  
+  // output the results when a frame ends
+  if(negege_VGA_VSYNC_NEG) begin
+    RESULT[0] <= (red_count > blue_count); 
+    // HIGH when color = red, LOW for color = blue 
+    RESULT[1] <= ((red_count + blue_count) > 3/5*176 * 144); 
+    // 1 = Treasure present, 0 = No Treasure
+    if((l1 <  (l2-20)) && (l2 <  (l3-20))) RESULT[3:2] <= 2'b00; // shape = triangle
+    else if((l1 < (l2-5)) && ((l2-5) > l3)) RESULT[3:2] <= 2'b01; // shape = diamond
+    else RESULT[3:2] <= 2'b10; // shape = square  
+  end
+  else begin
+    RESULT[0] <= RESULT[0];
+    RESULT[1] <= RESULT[1];
+    RESULT[3:2] <= RESULT[3:2];
+  end
+  // Color Detection Code 
+  if(~VGA_VSYNC_NEG) begin
+    red_count <= 0;
+    blue_count <= 0;  
+    l1 = 0;
+    l2 = 0;
+    l3 = 0;
+  end
+  else begin
+    if (red && VGA_READ_MEM_EN) red_count <= red_count + 1;
+    else red_count <= red_count;
+    if (blue && VGA_READ_MEM_EN) blue_count <= blue_count + 1;
+    else blue_count <= blue_count;
+  end
+
+  // Shape Detection Code
+  if(VGA_VSYNC_NEG && VGA_READ_MEM_EN) begin
+  
+    if(VGA_PIXEL_Y== 36) begin
+      if((red || blue)) begin
+        l1 <= l1 + 1;
+      end
+    end
+    else if(VGA_PIXEL_Y == 72) begin
+      if((red || blue)) begin
+        l2 <= l2 + 1;
+      end
+    end
+    else if(VGA_PIXEL_Y == 108) begin
+      if((red || blue)) begin
+        l3 <= l3 + 1;
+      end
+    end
+    else begin
+      l1 <= l1;
+      l2 <= l2;
+      l3 <= l3;
+    end
+  end
+  else begin
+    l1 <= l1;
+    l2 <= l2;
+    l3 <= l3;
+  end
+end</code></pre>
+                                  <p align="left">The Arduino code to process the 4-bit RESULT from FPGA is as follows.  </p>
+                                  <pre><code>if(Result[1]==1) // Treasure Present  
+ {
+    if(Result[0]==1) // Color Red
+    {
+      if(Result[2] ==0 && Result[3]==0) // 1'b00 for triangle
+      {
+        Serial.println("RED TRIANGLE ");
+      } else if(Result[2]==1 && Result[3]==0) // 1'b01 for diamond
+      {
+        Serial.println("RED DIAMOND");
+      } else 
+      {
+        Serial.println("RED SQUARE"); 
+      }
+    }
+    else // Color Blue 
+    {
+       if(Result[2]==0 && Result[3]==0) // 1'b00 for triangle
+      {
+        Serial.println("BLUE TRIANGLE ");
+      } else if(Result[2]==1 && Result[3]==0) // 1'b01 for diamond
+      {
+        Serial.println("BLUE DIAMOND");
+      } else 
+      {
+        Serial.println("BLUE SQUARE");
+      }
+    }
+  }
+  else // No Treasure 
+  {
+    Serial.println("No Treasure");
+  }
+  
+ }</code></pre>
                                   <ul class="list-inline">
-                                      <li>Date: January 2017</li>
-                                      <li>Client: Finish</li>
-                                      <li>Category: Identity</li>
+                                      <li>Date: November 30 2018</li>
                                   </ul>
                                   <button class="btn btn-primary" data-dismiss="modal" type="button">
                                       <i class="fa fa-times"></i>
