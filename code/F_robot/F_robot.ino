@@ -16,7 +16,7 @@ int line[5] = {0, 0, 0, 0, 0};
 int walls[3] = {0, 0, 0};
 int error = 0;
 int Kp = 14;
-int originalSpeed = 60;//origin 50
+int originalSpeed = 50;//origin 50
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int turn = 0;
@@ -134,7 +134,7 @@ void loop() {
     //Serial.println("");
   }*/
 
-  leftSensor();
+  //leftSensor();
 
   if (!checkIntersection()) // we are not at an intersection
   {
@@ -344,12 +344,19 @@ int rightSensor()
 int leftSensor()
 {
   long temp = 0;
+  long var = 0;
   int x;
   for (x=0; x < IR_SAMPLES; x++){
     temp += analogRead(sensorPinLeft);
   }
   sensorValueLeft = (int) (temp/IR_SAMPLES);
+  /*for (x=0; x < IR_SAMPLES; x++){
+    int t = analogRead(sensorPinLeft);
+    var += (sensorValueLeft - t)*(sensorValueLeft - t);
+  }*/
   Serial.println(sensorValueLeft);
+  //Serial.print(",      ");
+  //Serial.println(var);
   if (sensorValueLeft < 200) return 0;
   return 1;
 }
@@ -510,7 +517,7 @@ void mydelay(int count)
 }
 
 void turnLeftSweep() {
-  runServo(-35, 50);//origin(-30,50)
+  runServo(-30, 50);//origin(-30,50)
   delay(900);
   runServo(10, 10);
   delay(300);
@@ -522,8 +529,8 @@ void runServo(int leftSpeed, int rightSpeed)
   if (rightSpeed > 90) rightSpeed = 90;
   servo0.write(90+leftSpeed);
   servo1.write(90-rightSpeed);
-//  servo0.write(90);
-//  servo1.write(90);
+  //servo0.write(90);
+  //servo1.write(90);
 }
 
 bool checkIntersection()
