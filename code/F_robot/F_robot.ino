@@ -3,7 +3,7 @@
 #define IR_SAMPLES 60
 
 
-//#include <FFT.h> // include the library
+#include <FFT.h> // include the library
 #include <Servo.h>
 #include <SPI.h>
 #include "nRF24L01.h"
@@ -93,36 +93,59 @@ void setup() {
 
   setup_radio();
 
-  update_walls(&self);
-  set_explored(self.x, self.y, 1);
-  node[0] = self.y * 9 + self.x;
-  node[1] = maze_data[self.x][self.y].c;
-  while(!transmit_radio(node,2)){}
+  //update_walls(&self);
+  //set_explored(self.x, self.y, 1);
+  //node[0] = self.y * 9 + self.x;
+  //node[1] = maze_data[self.x][self.y].c;
+  //while(!transmit_radio(node,2)){}
 }
 
 void loop() {
-//  if (start == 0)
-//  {
-//    while (audio() == 0)
-//    {
-//      //Serial.println("No tone");
-//      if (readIR() == 1)
-//      {
-//        IRcounter++;
-//      }
-//      else
-//      {
-//        IRcounter = 0;
-//        Serial.println("");
-//      }
-//      if(IRcounter>3){
-//        Serial.println("IR Hat Detected");
-//        //make 180 turn
-//        IRcounter = 0;
-//      }
-//    }
-//    start = 1;
-//  }
+  if (start == 0)
+  {
+    while (audio() == 0)
+    {
+      //Serial.println("No tone");
+    }
+    start = 1;
+    Serial.println("Intersection");
+    stopServos();
+    update_walls(&self);
+    set_explored(self.x, self.y, 1);
+    node[0] = self.y * 9 + self.x;
+    node[1] = maze_data[self.x][self.y].c;
+    while(!transmit_radio(node,2)){}
+
+    // A bunch of debug serial prints
+    Serial.print(" North:");
+    Serial.print(maze_data[self.x][self.y].north);
+    Serial.print(" East:");
+    Serial.print(maze_data[self.x][self.y].east);
+    Serial.print(" South:");
+    Serial.print(maze_data[self.x][self.y].south);
+    Serial.print(" West:");
+    Serial.print(maze_data[self.x][self.y].west);
+    Serial.print(" X:");
+    Serial.print(self.x);
+    Serial.print(" Y:");
+    Serial.print(self.y);
+    Serial.print(" Dir:");
+    Serial.println(self.dir);
+
+    while (!ids_search()){}
+    // path planning debug statements
+    Serial.println(ids_search());
+    Serial.println(path_depth);
+    Serial.println("pos");
+    int n;
+    for (n = 0; n < path_depth; n++) {
+      Serial.println(x_pos(test_path[n]));
+      Serial.println(y_pos(test_path[n]));
+      Serial.println("");
+    }
+    c_path_depth = 0;
+    cmd_intersection();
+  }
 
 /*  if (readIR() == 1)
   {
@@ -171,20 +194,19 @@ void loop() {
     if (c_path_depth < path_depth) {
       cmd_intersection();
     } else {
-      while (!ids_search()){} //{
-        // path planning debug statements
-        Serial.println(ids_search());
-        Serial.println(path_depth);
-        Serial.println("pos");
-        int n;
-        for (n = 0; n < path_depth; n++) {
-          Serial.println(x_pos(test_path[n]));
-          Serial.println(y_pos(test_path[n]));
-          Serial.println("");
-        }
-        c_path_depth = 0;
-        cmd_intersection();
-      //}
+      while (!ids_search()){}
+      // path planning debug statements
+      Serial.println(ids_search());
+      Serial.println(path_depth);
+      Serial.println("pos");
+      int n;
+      for (n = 0; n < path_depth; n++) {
+        Serial.println(x_pos(test_path[n]));
+        Serial.println(y_pos(test_path[n]));
+        Serial.println("");
+      }
+      c_path_depth = 0;
+      cmd_intersection();
     }
     /*
       if(rightSensor() == 0)
@@ -344,7 +366,7 @@ int rightSensor()
 int leftSensor()
 {
   long temp = 0;
-  long var = 0;
+  //long var = 0;
   int x;
   for (x=0; x < IR_SAMPLES; x++){
     temp += analogRead(sensorPinLeft);
@@ -472,7 +494,7 @@ void PIDControl()
   runServo(motorSpeedL, motorSpeedR);    // remember error is negative if it turns left
 }
 
-/*
+
 int audio()
 {
   cli();
@@ -498,7 +520,7 @@ int audio()
     return 0;
   }
 
-}*/
+}
 
 void turnRightSweep()
 {
