@@ -15,8 +15,8 @@ Servo servo1;  // create servo object for the right servo
 int line[5] = {0, 0, 0, 0, 0};
 int walls[3] = {0, 0, 0};
 int error = 0;
-int Kp = 17;
-int originalSpeed = 60;//origin 50
+int Kp = 31;
+int originalSpeed = 90;//origin 50
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int turn = 0;
@@ -212,7 +212,7 @@ void cmd_intersection() {
   if (turns[c_path_depth] == 0) {
     PIDControl();
     unsigned long s_time = millis();;
-    while (s_time + 350 > millis()) {
+    while (s_time + 300 > millis()) {
       PIDControl();
     }
   } else if (turns[c_path_depth] == 1) {
