@@ -1,4 +1,4 @@
-﻿ g<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
 
@@ -194,7 +194,7 @@
                                   <i class="fa fa-plus fa-3x"></i>
                               </div>
                           </div>
-                          <img class="img-fluid" src="img/portfolio/lab1.jpg" alt="">
+                          <img class="img-fluid" src="img/portfolio/milestone4thumbnail.jpg" alt="">
                       </a>
                       <div class="portfolio-caption">
                           <h4>Milestone 4</h4>
@@ -1493,8 +1493,8 @@ if((y <= 15) || (y >= 129 )) pixel_data_RGB332 <= WHITE;
 else begin
    if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
    else begin
-      if((x <= (88 - (y-15)/2)) || (x > (88 + (y-15)/2)))   
-         pixel_data_RGB332  <= WHITE;                                 
+      if((x <= (88 - (y-15)/2)) || (x > (88 + (y-15)/2)))
+         pixel_data_RGB332  <= WHITE;
    else pixel_data_RGB332 <= RED;
    end
 end</code></pre>
@@ -1506,7 +1506,7 @@ else begin
    if( (x <= 31) || (x >= 145)) pixel_data_RGB332 <= WHITE;
    else begin
        if(y <= 72) begin
-          if((x <= (88 - (y-15))) || (x >= (88 + (y-15))))   
+          if((x <= (88 - (y-15))) || (x >= (88 + (y-15))))
               pixel_data_RGB332 <= WHITE;
           else pixel_data_RGB332 <= RED;
        end
@@ -1514,7 +1514,7 @@ else begin
           if((x <= (88 - (129-y))) || (x >= (88 +(129-y))))
                pixel_data_RGB332 <= WHITE;
           else pixel_data_RGB332 <= RED;
-       end    
+       end
    end
 end</code></pre>
                                   <p align="left">The above code is based on the following figure, showing the relevant coordinates of the diamond:</pre>
@@ -1522,14 +1522,14 @@ end</code></pre>
                                   <h3>Part 2: Image Processing</h3>
 
                                   <p align="left">Once we had nice, clean shapes as above, we wrote the shape detection code as follows. We sampled the screen along 3 horizontal lines at ¼, ½ and ¾ of the SCREEN_HEIGHT (=144), as shown below by 3 green lines:</pre>
-                                  <p align="left">We can distinguish between triangle, square and diamond by counting the number of red or blue pixels in each line, call them L1, L2 and L3. Clearly, for a triangle, we expect L1 < L2 < L3. For a diamond, we expect L1 < L2 & L2 > L3. For a square, we expect L1 = L2 = L3. IN other words, for a triangle, the slope is positive; for a diamond, the slope changes sign; for a square, the slope is constant with respect to L1, L2 and L3.</p>   
+                                  <p align="left">We can distinguish between triangle, square and diamond by counting the number of red or blue pixels in each line, call them L1, L2 and L3. Clearly, for a triangle, we expect L1 < L2 < L3. For a diamond, we expect L1 < L2 & L2 > L3. For a square, we expect L1 = L2 = L3. IN other words, for a triangle, the slope is positive; for a diamond, the slope changes sign; for a square, the slope is constant with respect to L1, L2 and L3.</p>
                                   <img class="img-fluid d-block mx-auto" src="img/milestones/milestone 4/unnamed.jpg" alt="">
                                   <p align="left">WWith this kind of logic, it was hard to distinguish between a triangle and a slightly tilted square. So instead, we modified the logic for triangle by putting a lower bound on the difference between L1 and L2, and between L2 and L3, so that our code was as follows: </p>
                                   <pre><code>if( (L1 <  (L2-20)) and (L2 <  (L3-20))) shape = triangle</code></pre>
                                   <p align="left">Using the above code, in order for a shape to pass for a triangle, it had to show a larger increase in value going from L1 to L2 to L3. A tilted square would not show that large a difference.
 For the diamond, the code was as follows: </p>
                                   <pre><code>if( (L1 < (L2-5)) and ((L2-5) > L3)) shape = diamond  </code></pre>
-                                  <p align="left">Again, we put a number 5 as the minimum required difference to account for noise and other deviations from ideal behavior, as would occur with a real camera. </p> 
+                                  <p align="left">Again, we put a number 5 as the minimum required difference to account for noise and other deviations from ideal behavior, as would occur with a real camera. </p>
                                   <p align="left">For a square, it was very difficult to detect L1 = L2 = L3 because of noise, square being at an angle, etc. </p>
                                   <p align="left">So instead, we used the following logic. Our code for color and presence detection ran completely independently but in parallel with our code for shape detection. So we could combine information from the two. GIVEN that a treasure was present, the shape was a square if and only if it was not a triangle or a diamond. </p>
                                   <p align="left">Also, you can see that our shape detection code did not take into account the color of the pixels; it simply counted the number of red or blue pixels along 3 lines to figure out the shape, while the color was detected by a separate section of code running in parallel. Decoupling shape, color and treasure detection was useful in debugging. </p>
@@ -1552,26 +1552,26 @@ assign negege_VGA_VSYNC_NEG = prev_VGA_VSYNC_NEG & ~VGA_VSYNC_NEG;
 
 always @(posedge CLK) begin
   prev_VGA_VSYNC_NEG <= VGA_VSYNC_NEG;
-  
+
   // output the results when a frame ends
   if(negege_VGA_VSYNC_NEG) begin
-    RESULT[0] <= (red_count > blue_count); 
-    // HIGH when color = red, LOW for color = blue 
-    RESULT[1] <= ((red_count + blue_count) > 3/5*176 * 144); 
+    RESULT[0] <= (red_count > blue_count);
+    // HIGH when color = red, LOW for color = blue
+    RESULT[1] <= ((red_count + blue_count) > 3/5*176 * 144);
     // 1 = Treasure present, 0 = No Treasure
     if((l1 <  (l2-20)) && (l2 <  (l3-20))) RESULT[3:2] <= 2'b00; // shape = triangle
     else if((l1 < (l2-5)) && ((l2-5) > l3)) RESULT[3:2] <= 2'b01; // shape = diamond
-    else RESULT[3:2] <= 2'b10; // shape = square  
+    else RESULT[3:2] <= 2'b10; // shape = square
   end
   else begin
     RESULT[0] <= RESULT[0];
     RESULT[1] <= RESULT[1];
     RESULT[3:2] <= RESULT[3:2];
   end
-  // Color Detection Code 
+  // Color Detection Code
   if(~VGA_VSYNC_NEG) begin
     red_count <= 0;
-    blue_count <= 0;  
+    blue_count <= 0;
     l1 = 0;
     l2 = 0;
     l3 = 0;
@@ -1585,7 +1585,7 @@ always @(posedge CLK) begin
 
   // Shape Detection Code
   if(VGA_VSYNC_NEG && VGA_READ_MEM_EN) begin
-  
+
     if(VGA_PIXEL_Y== 36) begin
       if((red || blue)) begin
         l1 <= l1 + 1;
@@ -1614,7 +1614,7 @@ always @(posedge CLK) begin
   end
 end</code></pre>
                                   <p align="left">The Arduino code to process the 4-bit RESULT from FPGA is as follows.  </p>
-                                  <pre><code>if(Result[1]==1) // Treasure Present  
+                                  <pre><code>if(Result[1]==1) // Treasure Present
  {
     if(Result[0]==1) // Color Red
     {
@@ -1624,12 +1624,12 @@ end</code></pre>
       } else if(Result[2]==1 && Result[3]==0) // 1'b01 for diamond
       {
         Serial.println("RED DIAMOND");
-      } else 
+      } else
       {
-        Serial.println("RED SQUARE"); 
+        Serial.println("RED SQUARE");
       }
     }
-    else // Color Blue 
+    else // Color Blue
     {
        if(Result[2]==0 && Result[3]==0) // 1'b00 for triangle
       {
@@ -1637,17 +1637,17 @@ end</code></pre>
       } else if(Result[2]==1 && Result[3]==0) // 1'b01 for diamond
       {
         Serial.println("BLUE DIAMOND");
-      } else 
+      } else
       {
         Serial.println("BLUE SQUARE");
       }
     }
   }
-  else // No Treasure 
+  else // No Treasure
   {
     Serial.println("No Treasure");
   }
-  
+
  }</code></pre>
                                   <ul class="list-inline">
                                       <li>Date: November 30 2018</li>

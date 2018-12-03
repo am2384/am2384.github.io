@@ -121,15 +121,22 @@ void loop() {
 
     int north = (info&0x80);
     if(north) Serial.print(",north=true");
+    else Serial.print(",north=false");
+    
     int south = (info&0x40);
     if(south) Serial.print(",south=true");
+    else Serial.print(",south=false");
+    
     int east = (info&0x20);
     if(east) Serial.print(",east=true");
+    else Serial.print(",east=false");
+    
     int west = (info&0x10);
     if(west) Serial.print(",west=true");
+    else Serial.print(",west=false");
+    
     Serial.print("\n");
     newData = false;
-    
   }
 }
 
