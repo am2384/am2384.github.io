@@ -15,8 +15,8 @@ Servo servo1;  // create servo object for the right servo
 int line[5] = {0, 0, 0, 0, 0};
 int walls[3] = {0, 0, 0};
 int error = 0;
-int Kp = 15;
-int originalSpeed = 50;//origin 50
+int Kp = 17;
+int originalSpeed = 60;//origin 50
 int motorSpeedL = 0;
 int motorSpeedR = 0;
 int turn = 0;
