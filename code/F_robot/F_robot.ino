@@ -91,9 +91,9 @@ void setup() {
 
   setup_radio();
 
-  while (audio() == 0 || true)
+  while (audio() == 0)
   {
-    Serial.println(IR_det());
+    //Serial.println(IR_det());
   }
   servo0.attach(3, 1300, 1700); // attaches the servo on pin 5 to the servo object
   servo1.attach(5, 1300, 1700); // attaches the servo on pin 6 to the servo object
@@ -561,8 +561,8 @@ void runServo(int leftSpeed, int rightSpeed)
 {
   if (leftSpeed > 90) leftSpeed = 90;
   if (rightSpeed > 90) rightSpeed = 90;
-  if (leftSpeed < 0) leftSpeed = 0;
-  if (rightSpeed < 0) rightSpeed = 0;
+  if (leftSpeed < -90) leftSpeed = 90;
+  if (rightSpeed < -90) rightSpeed = 90;
   servo0.write(90+leftSpeed);
   servo1.write(90-rightSpeed);
   //servo0.write(90);
