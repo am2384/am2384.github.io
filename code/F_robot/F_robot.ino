@@ -113,6 +113,8 @@ void loop() {
       Serial.println(ir);
     }
     start = 1;
+
+    while(1);
     
     Serial.println("Intersection");
     stopServos();
@@ -513,10 +515,10 @@ int audio()
   fft_run();
   fft_mag_log();
   sei();
-  //    Serial.println("start");
-  //    for (byte i = 0 ; i < FFT_N/2 ; i++) {
-  //      Serial.println(fft_log_out[i]);
-  //    }
+//      Serial.println("start");
+//      for (byte i = 0 ; i < FFT_N/2 ; i++) {
+//        Serial.println(fft_log_out[i]);
+//      }
 
   if (fft_log_out[19] > 65 || fft_log_out[20] > 65 || fft_log_out[21] > 65)
   {
@@ -527,6 +529,7 @@ int audio()
   }
 
 }
+
 
 
 int IR_det()
@@ -541,12 +544,12 @@ int IR_det()
   fft_run();
   fft_mag_log();
   sei();
-  //    Serial.println("start");
-  //    for (byte i = 0 ; i < FFT_N/2 ; i++) {
-  //      Serial.println(fft_log_out[i]);
-  //    }
+//      Serial.println("start");
+//      for (byte i = 0 ; i < FFT_N/2 ; i++) {
+//        Serial.println(fft_log_out[i]);
+//      }
 
-  if (fft_log_out[84] > 65 || fft_log_out[85] > 65 || fft_log_out[86] > 65)
+  if (fft_log_out[72] > 65 || fft_log_out[73] > 65 || fft_log_out[74] > 65)
   {
     return 1;
   }
