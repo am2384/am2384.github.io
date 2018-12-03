@@ -15,7 +15,7 @@ Servo servo1;  // create servo object for the right servo
 int line[5] = {0, 0, 0, 0, 0};
 int walls[3] = {0, 0, 0};
 int error = 0;
-int Kp = 14;
+int Kp = 15;
 int originalSpeed = 50;//origin 50
 int motorSpeedL = 0;
 int motorSpeedR = 0;
@@ -27,10 +27,10 @@ int sensorPinFront = A3;
 int sensorValueFront;
 int sensorPinLeft = A4;
 int sensorValueLeft;
-int start = 0;
 char node[2];
 int IRcounter=0;
 int temp_Arry[IR_SAMPLES];
+bool map_changed = false;
 
 // radio
 RF24 radio(9, 10);
@@ -76,8 +76,6 @@ unsigned int path_depth = 0;
 void setup() {
   //Serial.begin(115200);
   Serial.begin(9600);
-  servo0.attach(3, 1300, 1700); // attaches the servo on pin 5 to the servo object
-  servo1.attach(5, 1300, 1700); // attaches the servo on pin 6 to the servo object
   pinMode(6, INPUT);
   pinMode(8, INPUT);
   pinMode(2, INPUT);
@@ -93,6 +91,50 @@ void setup() {
 
   setup_radio();
 
+  while (audio() == 0 || true)
+  {
+    Serial.println(IR_det());
+  }
+  servo0.attach(3, 1300, 1700); // attaches the servo on pin 5 to the servo object
+  servo1.attach(5, 1300, 1700); // attaches the servo on pin 6 to the servo object
+  Serial.println("Intersection");
+  stopServos();
+  update_walls(&self, false);
+  set_explored(self.x, self.y, 1);
+  node[0] = self.y * 9 + self.x;
+  node[1] = maze_data[self.x][self.y].c;
+  while(!transmit_radio(node,2)){}
+
+  // A bunch of debug serial prints
+  Serial.print(" North:");
+  Serial.print(maze_data[self.x][self.y].north);
+  Serial.print(" East:");
+  Serial.print(maze_data[self.x][self.y].east);
+  Serial.print(" South:");
+  Serial.print(maze_data[self.x][self.y].south);
+  Serial.print(" West:");
+  Serial.print(maze_data[self.x][self.y].west);
+  Serial.print(" X:");
+  Serial.print(self.x);
+  Serial.print(" Y:");
+  Serial.print(self.y);
+  Serial.print(" Dir:");
+  Serial.println(self.dir);
+
+  while (!ids_search()){}
+  // path planning debug statements
+  Serial.println(ids_search());
+  Serial.println(path_depth);
+  Serial.println("pos");
+  int n;
+  for (n = 0; n < path_depth; n++) {
+    Serial.println(x_pos(test_path[n]));
+    Serial.println(y_pos(test_path[n]));
+    Serial.println("");
+  }
+  c_path_depth = 0;
+  cmd_intersection();
+  
   //update_walls(&self);
   //set_explored(self.x, self.y, 1);
   //node[0] = self.y * 9 + self.x;
@@ -101,75 +143,22 @@ void setup() {
 }
 
 void loop() {
-  if (start == 0)
-  {
-    while (audio() == 0)
-    {
-    }
-    start = 1;
-    
-    Serial.println("Intersection");
-    stopServos();
-    update_walls(&self);
-    set_explored(self.x, self.y, 1);
-    node[0] = self.y * 9 + self.x;
-    node[1] = maze_data[self.x][self.y].c;
-    while(!transmit_radio(node,2)){}
-
-    // A bunch of debug serial prints
-    Serial.print(" North:");
-    Serial.print(maze_data[self.x][self.y].north);
-    Serial.print(" East:");
-    Serial.print(maze_data[self.x][self.y].east);
-    Serial.print(" South:");
-    Serial.print(maze_data[self.x][self.y].south);
-    Serial.print(" West:");
-    Serial.print(maze_data[self.x][self.y].west);
-    Serial.print(" X:");
-    Serial.print(self.x);
-    Serial.print(" Y:");
-    Serial.print(self.y);
-    Serial.print(" Dir:");
-    Serial.println(self.dir);
-
-    while (!ids_search()){}
-    // path planning debug statements
-    Serial.println(ids_search());
-    Serial.println(path_depth);
-    Serial.println("pos");
-    int n;
-    for (n = 0; n < path_depth; n++) {
-      Serial.println(x_pos(test_path[n]));
-      Serial.println(y_pos(test_path[n]));
-      Serial.println("");
-    }
-    c_path_depth = 0;
-    cmd_intersection();
-  }
-
-/*  if (readIR() == 1)
-  {
-    Serial.println("IR Hat Detected");
-    make180turn();
-  }
-  else
-  {
-    //Serial.println("");
-  }*/
 
   //leftSensor();
-
+  
   if (!checkIntersection()) // we are not at an intersection
   {
     PIDControl();
   }
   else // we are at an intersection
   {
+    IRcounter = IR_det();
+    map_changed = false;
     Serial.println("Intersection");
     stopServos();
     inc_pos(&self);
     c_path_depth++;
-    update_walls(&self);
+    map_changed = update_walls(&self, false);
     set_explored(self.x, self.y, 1);
     node[0] = self.y * 9 + self.x;
     node[1] = maze_data[self.x][self.y].c;
@@ -191,10 +180,12 @@ void loop() {
     Serial.print(" Dir:");
     Serial.println(self.dir);
 
-    if (c_path_depth < path_depth) {
+    if (c_path_depth < path_depth && !map_changed) {
       cmd_intersection();
     } else {
-      while (!ids_search()){}
+      while (!ids_search()){
+        map_changed = update_walls(&self, false);
+      }
       // path planning debug statements
       Serial.println(ids_search());
       Serial.println(path_depth);
@@ -208,25 +199,8 @@ void loop() {
       c_path_depth = 0;
       cmd_intersection();
     }
-    /*
-      if(rightSensor() == 0)
-      {
-      turnRightSweep();
-      rec_right_turn(&self);
-      }
-      else if(frontSensor() == 1)
-      {
-      turnLeftSweep();
-      rec_left_turn(&self);
-      }
-      else
-      {
-      PIDControl();
-      int s_time = millis();
-      while (s_time + 100 > millis())
-        PIDControl();
-      }
-    */
+    if (IRcounter)
+      update_walls(&self, true);
   }
 }
 
@@ -383,10 +357,14 @@ int leftSensor()
   return 1;
 }
 
-void update_walls(robot_self_t* t)
+bool update_walls(robot_self_t* t, bool ir)
 {
+  int maze_data_old = maze_data[t->x][t->y].c;
   walls[0] = leftSensor();
-  walls[1] = frontSensor();
+  if (ir)
+    walls[1] = false;
+  else
+    walls[1] = frontSensor();
   walls[2] = rightSensor();
   switch (t->dir) {
     case 0:
@@ -418,6 +396,9 @@ void update_walls(robot_self_t* t)
     maze_data[t->x][t->y].east = 1;
   if (t->y == 8)
     maze_data[t->x][t->y].south = 1;
+  if (maze_data_old == maze_data[t->x][t->y].c)
+    return false;
+  return true;
 }
 
 void make180turn()
@@ -580,6 +561,8 @@ void runServo(int leftSpeed, int rightSpeed)
 {
   if (leftSpeed > 90) leftSpeed = 90;
   if (rightSpeed > 90) rightSpeed = 90;
+  if (leftSpeed < 0) leftSpeed = 0;
+  if (rightSpeed < 0) rightSpeed = 0;
   servo0.write(90+leftSpeed);
   servo1.write(90-rightSpeed);
   //servo0.write(90);
@@ -594,12 +577,12 @@ bool checkIntersection()
   line[3] = !(digitalRead(4));
   line[4] = !(digitalRead(7));
 
-//    Serial.print(line[0]);
-//    Serial.print(line[1]);
-//    Serial.print(line[2]);
-//    Serial.print(line[3]);
-//    Serial.print(line[4]);
-//    Serial.println("");
+    //Serial.print(line[0]);
+    //Serial.print(line[1]);
+    //Serial.print(line[2]);
+    //Serial.print(line[3]);
+    //Serial.print(line[4]);
+    //Serial.println("");
   if ((line[0] + line[1] + line[2] + line[3] + line[4]) >= 4) return 1;
   return 0;
   //return (line[0] && line[1] && line[2] && line[3] && line[4]);
