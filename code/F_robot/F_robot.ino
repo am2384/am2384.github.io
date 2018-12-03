@@ -103,11 +103,17 @@ void setup() {
 void loop() {
   if (start == 0)
   {
-    while (audio() == 0)
+    //while (audio() == 0)
+    while(1)
     {
-      //Serial.println("No tone");
+      Serial.print("audio ");
+      Serial.println(audio());
+      int ir = IR_det();
+      Serial.print("IR ");
+      Serial.println(ir);
     }
     start = 1;
+    
     Serial.println("Intersection");
     stopServos();
     update_walls(&self);
@@ -521,6 +527,36 @@ int audio()
   }
 
 }
+
+
+int IR_det()
+{
+  cli();
+  for (int i = 0 ; i < 512 ; i += 2) {
+    fft_input[i] = analogRead(A0); // <-- NOTE THIS LINE
+    fft_input[i + 1] = 0;
+  }
+  fft_window();
+  fft_reorder();
+  fft_run();
+  fft_mag_log();
+  sei();
+  //    Serial.println("start");
+  //    for (byte i = 0 ; i < FFT_N/2 ; i++) {
+  //      Serial.println(fft_log_out[i]);
+  //    }
+
+  if (fft_log_out[84] > 65 || fft_log_out[85] > 65 || fft_log_out[86] > 65)
+  {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+
+}
+
+
 
 void turnRightSweep()
 {
