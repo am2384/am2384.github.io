@@ -103,18 +103,10 @@ void setup() {
 void loop() {
   if (start == 0)
   {
-    //while (audio() == 0)
-    while(1)
+    while (audio() == 0)
     {
-      Serial.print("audio ");
-      Serial.println(audio());
-      int ir = IR_det();
-      Serial.print("IR ");
-      Serial.println(ir);
     }
     start = 1;
-
-    while(1);
     
     Serial.println("Intersection");
     stopServos();
