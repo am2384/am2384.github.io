@@ -561,8 +561,8 @@ void runServo(int leftSpeed, int rightSpeed)
 {
   if (leftSpeed > 90) leftSpeed = 90;
   if (rightSpeed > 90) rightSpeed = 90;
-  if (leftSpeed < -90) leftSpeed = 90;
-  if (rightSpeed < -90) rightSpeed = 90;
+  if (leftSpeed < -90) leftSpeed = -90;
+  if (rightSpeed < -90) rightSpeed = -90;
   servo0.write(90+leftSpeed);
   servo1.write(90-rightSpeed);
   //servo0.write(90);
