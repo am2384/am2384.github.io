@@ -2,7 +2,7 @@
 #define FFT_N 256 // set to 256 point fft
 #define IR_SAMPLES 60
 #define IR_ROBOT_SAMPLES 5
-#define IR_THRESH 3
+#define IR_THRESH 1
 
 
 #include <FFT.h> // include the library
@@ -95,7 +95,14 @@ void setup() {
 
   while (audio() == 0)
   {
-    //Serial.println(IR_det());
+    int a;
+    IRcounter=0;
+    for (a=0; a<IR_ROBOT_SAMPLES; a++)
+      IRcounter += IR_det();
+    if (IRcounter >= IR_THRESH)
+      Serial.println(1);
+    else
+      Serial.println(0);
   }
   servo0.attach(3, 1300, 1700); // attaches the servo on pin 5 to the servo object
   servo1.attach(5, 1300, 1700); // attaches the servo on pin 6 to the servo object
@@ -155,6 +162,7 @@ void loop() {
   else // we are at an intersection
   {
     int a;
+    IRcounter=0;
     for (a=0; a<IR_ROBOT_SAMPLES; a++)
       IRcounter += IR_det();
     if (IRcounter >= IR_THRESH)
