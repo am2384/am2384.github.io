@@ -1,6 +1,8 @@
 #define LOG_OUT 1 // use the log output function
 #define FFT_N 256 // set to 256 point fft
 #define IR_SAMPLES 60
+#define IR_ROBOT_SAMPLES 5
+#define IR_THRESH 3
 
 
 #include <FFT.h> // include the library
@@ -152,7 +154,13 @@ void loop() {
   }
   else // we are at an intersection
   {
-    IRcounter = IR_det();
+    int a;
+    for (a=0; a<IR_ROBOT_SAMPLES; a++)
+      IRcounter += IR_det();
+    if (IRcounter > IR_THRESH)
+      IRcounter = 1;
+    else
+      IRcounter = 0;
     map_changed = false;
     Serial.println("Intersection");
     stopServos();
