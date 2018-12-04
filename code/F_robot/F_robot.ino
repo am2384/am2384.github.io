@@ -157,7 +157,7 @@ void loop() {
     int a;
     for (a=0; a<IR_ROBOT_SAMPLES; a++)
       IRcounter += IR_det();
-    if (IRcounter > IR_THRESH)
+    if (IRcounter >= IR_THRESH)
       IRcounter = 1;
     else
       IRcounter = 0;
