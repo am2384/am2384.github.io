@@ -153,6 +153,8 @@ void loop() {
   else // we are at an intersection
   {
     IRcounter = IR_det();
+    if (IRcounter)
+      delay(1000);
     map_changed = false;
     Serial.println("Intersection");
     stopServos();
@@ -186,6 +188,7 @@ void loop() {
       while (!ids_search()){
         map_changed = update_walls(&self, false);
       }
+      
       // path planning debug statements
       Serial.println(ids_search());
       Serial.println(path_depth);
@@ -197,10 +200,16 @@ void loop() {
         Serial.println("");
       }
       c_path_depth = 0;
+
+      if (IRcounter){
+        update_walls(&self, true);
+        node[0] = self.y * 9 + self.x;
+        node[1] = maze_data[self.x][self.y].c;
+        while(!transmit_radio(node,2)){}
+      }
+      
       cmd_intersection();
     }
-    if (IRcounter)
-      update_walls(&self, true);
   }
 }
 
@@ -522,7 +531,7 @@ int IR_det()
 //        Serial.println(fft_log_out[i]);
 //      }
 
-  if (fft_log_out[72] > 65 || fft_log_out[73] > 65 || fft_log_out[74] > 65)
+  if (fft_log_out[72] > 50 || fft_log_out[73] > 50 || fft_log_out[74] > 50)
   {
     return 1;
   }
