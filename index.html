@@ -242,7 +242,7 @@
               <div class="row">
                   <div class="col-lg-12 text-center">
                       <h2 class="section-heading text-uppercase">Timeline</h2>
-                      <h3 class="section-subheading text-muted">See how team YAAAS developed our project over time</h3>
+                      <h3 class="section-subheading text-muted">See how team YAAAS developed their project over time</h3>
                   </div>
               </div>
               <div class="row">
@@ -254,11 +254,12 @@
                               </div>
                               <div class="timeline-panel">
                                   <div class="timeline-heading">
-                                      <h4>August</h4>
+                                      <h4>Late August</h4>
                                       <h4 class="subheading">Our Humble Beginnings</h4>
                                   </div>
                                   <div class="timeline-body">
-                                      <p class="text-muted">YAAAS emerged from the bowels of Duffield Hall</p>
+                                      <p class="text-muted">Built a simple robot with a portable 9V battery and two servo motors.</p>
+									  <p class="text-muted">Top speed of 40 cm/s</p>
                                   </div>
                               </div>
                           </li>
@@ -268,11 +269,12 @@
                               </div>
                               <div class="timeline-panel">
                                   <div class="timeline-heading">
-                                      <h4>September</h4>
-                                      <h4 class="subheading">An Robot is Born</h4>
+                                      <h4>Early September</h4>
+                                      <h4 class="subheading">Infrared Sensors and Analog Filters</h4>
                                   </div>
                                   <div class="timeline-body">
-                                      <p class="text-muted">At 6.66 lbs, we are proud parents</p>
+                                      <p class="text-muted"> Successfully implemented Line following using IR sensors to detect different color thresholds of the terrain </p>
+									  <p class="text-muted"> Used IR phototransistor to detect particular IR frequencies emitted from other robots to avoid collision; used Fast Fourier Transform Algorithm and digital and analog filters.  </p>
                                   </div>
                               </div>
                           </li>
@@ -282,28 +284,76 @@
                               </div>
                               <div class="timeline-panel">
                                   <div class="timeline-heading">
-                                      <h4>October</h4>
-                                      <h4 class="subheading">Transition to Full Service</h4>
+                                      <h4>Late September</h4>
+                                      <h4 class="subheading">Audio Detection</h4>
                                   </div>
                                   <div class="timeline-body">
-                                      <p class="text-muted">Baby robot hits puberty, his body begins to change</p>
+                                      <p class="text-muted">Used active bandpass filter to detect 660 Hz audio signal from microphone. Achieved Bandwidth of 70 Hz. </p>
                                   </div>
                               </div>
                           </li>
-                          <li class="timeline-inverted">
+						  <li class="timeline-inverted">
                               <div class="timeline-image">
-                                  <img class="rounded-circle img-fluid" src="img/about/4.jpg" alt="">
+                                  <img class="rounded-circle img-fluid" src="img/about/2.jpg" alt="">
                               </div>
                               <div class="timeline-panel">
                                   <div class="timeline-heading">
-                                      <h4>July 2014</h4>
-                                      <h4 class="subheading">Phase Two Expansion</h4>
+                                      <h4>Early October</h4>
+                                      <h4 class="subheading">Multiple IR distance sensors</h4>
                                   </div>
                                   <div class="timeline-body">
-                                      <p class="text-muted">He goes rogue and tries to take over the Earth (and venus. we're unsure why)</p>
+                                      <p class="text-muted"> Incorporated 3 IR distance sensors to detect walls in 3 directions; allowed the robot to randomly navigate an arbitrary maze.</p>
+									  <p class="text-muted"> Robot could successfully avoid obstacles while navigating based on their IR signatures. </p>
                                   </div>
                               </div>
                           </li>
+						    <li>
+                              <div class="timeline-image">
+                                  <img class="rounded-circle img-fluid" src="img/about/3.jpg" alt="">
+                              </div>
+                              <div class="timeline-panel">
+                                  <div class="timeline-heading">
+                                      <h4>Late October</h4>
+                                      <h4 class="subheading">Wireless Radio Communication</h4>
+                                  </div>
+                                  <div class="timeline-body">
+                                      <p class="text-muted"> Incorporated radio transmitter onto the robot to successfully communicate real-time,local maze information to nearby receiver.</p>
+									  <p class="text-muted"> Data was transmitted using string characters. Information transmitted included presence of walls.  </p>
+                                  </div>
+                              </div>
+                          </li>
+						   <li class="timeline-inverted">
+                              <div class="timeline-image">
+                                  <img class="rounded-circle img-fluid" src="img/about/2.jpg" alt="">
+                              </div>
+                              <div class="timeline-panel">
+                                  <div class="timeline-heading">
+                                      <h4>Early November</h4>
+                                      <h4 class="subheading">Camera and FPGA processing</h4>
+                                  </div>
+                                  <div class="timeline-body">
+                                      <p class="text-muted"> Incorporated camera to detect different colors and shapes on the walls. Used I2C Communication protocol for communication between camera and Arduino.</p>
+									  <p class="text-muted"> Used Verilog to develop image processing module to decode information from camera. Implemented parallel communication between FPGA and camera. </p>
+                                  </div>
+                              </div>
+                          </li>
+						      <li>
+                              <div class="timeline-image">
+                                  <img class="rounded-circle img-fluid" src="img/about/3.jpg" alt="">
+                              </div>
+                              <div class="timeline-panel">
+                                  <div class="timeline-heading">
+                                      <h4>Late November</h4>
+                                      <h4 class="subheading">Intelligent Path Planning</h4>
+                                  </div>
+                                  <div class="timeline-body">
+                                      <p class="text-muted"> Implemented Iterative Depth Search Algorithm to efficiently navigate the maze.  </p>
+									  <p class="text-muted"> Information transmitted included presence of walls, colors and shapes of wall treasures.  </p>
+                                  </div>
+                              </div>
+                          </li>
+						
+                        
                           <li class="timeline-inverted">
                               <div class="timeline-image">
                                   <h4>
