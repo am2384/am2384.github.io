@@ -1874,9 +1874,34 @@ through peaceful dialogue will be a better recourse for everyone. </p>
                               <div class="modal-body">
 				      <!-- Project Details Go Here -->
 				       <h2 class="text-uppercase">Final Robot Design</h2>
-
-
-				       <button class="btn btn-primary" data-dismiss="modal" type="button">
+                        <h3>Summary:</h3>
+						<p align="left">Team YAAAS has developed a fully functional, autonomous, maze-exploring robot that competed in Cornell’s 2018 Robotics Day competition. The robot features 3D printed chassis parts, integrated sensors for line and wall detection, IR and audio processing using FFT, image processing, and algorithmic path planning. Altogether 4 months of work went into our system. We learned a lot during this experience, and are excited to further explore robotics in our future. </p>
+                         <p align="left">See our final project video here: </p>
+						 <iframe width="697" height="392" src="https://www.youtube.com/embed/pKwc_30mCYA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+				       <h3>Chassis:</h3>
+					   
+					   <p align="left">Our chassis consisted of 3D printed parts provided in the lab. On our lowest level, we fasten 5 line sensors to enable to robot to follow a line with PID control. This allows for robust line following. In competition, the line to follow is always white and the surrounding is black. Because this is constant, we developed Schmitt triggers for all of our line sensors. This allows us to process line sensor data as a digital input instead of a analog input. We also store our battery on the bottom layer which powers the entire robot.
+ </p>
+						<p align="left">On the second layer of our chassis, lies our Arduino microcontroller and a breadboard for with amplifiers used for audio and IR detection. These sensitive components are place on the middle layer to avoid damage.
+</p>
+						<p align="left"> The top layer of our chassis feature many long range sensors. Draped on the front and two sides are our wall sensors. These allow our robot to detect walls to inform its path planning. Also on the top are our IR sensor, IR emitter, and camera and FPGA image processor. These sensors all detect objects at a distance so placing them on top of the rover keeps them unobstructed.
+</p>
+						<h3>Audio & IR FFT: </h3>
+						<p align="left"> We used 128-point FFT.</p>
+						
+						<h3>Radio Communication:</h3>
+						<p align="left">The robot communicates with a ground station as it explores the maze, and the ground station updates a GUI to reflect the robot’s findings. This communication is done using 2 Nordic nRF24L01+ transceivers. We based our transmit and receive software on the RF24 Arduino Library. In order to maximize transmission efficiency, we transmit all of our maze data in 2 bytes using bit masking. This communicates our location in the maze, the walls around the robot, and the detection of any treasures. 
+</p>
+						<p align="left"> During testing, we noticed that our wall sensors are occasionally inaccurate and report walls that do not exist. We implemented an aspect of redundancy, so our robot can take multiple measurements of walls, and update its internal path planning system and the GUI to reflect updates on the existence of walls.</p>
+						
+						<h3>Path Planning:</h3>
+						<p align="left"> To path plan, the robot uses an Iterative Deepening Search to find unexplored tiles. As an extension of Depth-First Search this conserved memory by only saving the path to the node currently being searched. By searching over the map saved by the robot we’re able to plan a path to the edge of the currently explored region and avoid walls.
+</p>
+						<img class="img-fluid d-block mx-auto" src="img/milestones/milestone 4/group.jpg" alt="">
+						
+						
+						
+					   <button class="btn btn-primary" data-dismiss="modal" type="button">
                                       <i class="fa fa-times"></i>
                                       Close Project
                                   </button>
